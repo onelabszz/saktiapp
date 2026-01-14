@@ -1,0 +1,21 @@
+{
+  "name": "Sakti App SD Negeri 3 Krisak",
+  "short_name": "Sakti App",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fdfbf7",
+  "theme_color": "#FF9000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
