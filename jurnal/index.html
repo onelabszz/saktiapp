@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jurnal SDN 3 Krisak Mobile</title>
+    <link rel="icon" href="https://i.imgur.com/NIlN3oW.png" type="image/png">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF9000', /* Vivid Orange */
+                        onPrimary: '#ffffff',
+                        primaryContainer: '#fff7ed',
+                        onPrimaryContainer: '#9a3412',
+                        secondary: '#334155', /* Slate 700 */
+                        surface: '#fdfbf7', /* Warm White */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Roboto', 'sans-serif'],
+                        serif: ['Times New Roman', 'serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 20px -2px rgba(0,0,0,0.05)',
+                        'glow': '0 0 15px rgba(255, 144, 0, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- HEIC2ANY -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
+
+    <style>
+        .hidden-view { display: none !important; }
+        input, textarea, select { font-size: 16px; font-family: 'Inter', sans-serif; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Logo */
+        .logo-placeholder {
+            background-image: url('https://i.imgur.com/NIlN3oW.png');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+        }
+
+        /* Toast Redesigned: Top Position (Heads-up) */
+        #toast-container {
+            position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 100; display: flex; flex-direction: column; gap: 8px;
+            width: 90%; max-width: 400px; pointer-events: none;
+        }
+        .toast {
+            background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px); color: white;
+            padding: 14px 20px; border-radius: 50px; font-size: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            pointer-events: auto; display: flex; align-items: center; 
+            justify-content: center; gap: 10px; font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .toast.error { background: rgba(239, 68, 68, 0.95); }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
+        /* Calendar */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 14px; font-size: 0.85rem; cursor: pointer; position: relative; transition: all 0.2s; color: #475569; background: white; border: 1px solid #f1f5f9; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .calendar-day.has-data { border-color: #fdba74; color: #ea580c; font-weight: bold; background-color: #fff7ed; }
+        .calendar-day.selected { background-color: #FF9000; color: white; border-color: #FF9000; box-shadow: 0 4px 10px rgba(255, 144, 0, 0.3); }
+        .calendar-day.today { border: 2px solid #3b82f6; }
+        
+        /* Suggestions */
+        .suggestion-list {
+            max-height: 150px; overflow-y: auto; background: white;
+            border: 1px solid #e2e8f0; border-radius: 0 0 16px 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            position: absolute; width: 100%; z-index: 50; top: 100%;
+        }
+        .suggestion-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f8fafc; font-size: 14px; color: #475569; }
+        .suggestion-item:hover { background-color: #fff7ed; color: #ea580c; }
+        video { object-fit: cover; }
+    </style>
+</head>
+<body class="bg-[#fdfbf7] text-slate-800 min-h-screen relative font-sans selection:bg-orange-200 selection:text-orange-900">
+
+    <div id="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="hidden-view fixed inset-0 bg-white/95 z-[70] flex items-center justify-center flex-col backdrop-blur-sm">
+        <div class="animate-spin text-primary mb-4">
+            <i data-lucide="loader-2" width="48" height="48"></i>
+        </div>
+        <p class="text-slate-500 font-medium tracking-wide text-sm">Sedang Memproses...</p>
+    </div>
+
+    <!-- Image Modal Viewer -->
+    <div id="modal-image" class="hidden-view fixed inset-0 bg-black/95 z-[60] flex flex-col items-center justify-center p-4">
+        <button onclick="app.closeImage()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white z-20 backdrop-blur">
+            <i data-lucide="x" width="24" height="24"></i>
+        </button>
+        <img id="modal-img-display" src="" class="max-w-full max-h-screen object-contain rounded-lg shadow-2xl" crossorigin="anonymous" referrerpolicy="no-referrer">
+    </div>
+
+    <!-- IN-APP CAMERA MODAL -->
+    <div id="modal-camera" class="hidden-view fixed inset-0 bg-black z-[80] flex flex-col">
+        <div class="relative flex-grow bg-black flex items-center justify-center overflow-hidden">
+             <video id="camera-stream" autoplay playsinline muted class="w-full h-full object-cover"></video>
+             <canvas id="camera-canvas" class="hidden-view"></canvas>
+             <div class="absolute inset-0 border-2 border-white/30 pointer-events-none m-8 rounded-3xl"></div>
+        </div>
+        <div class="h-32 bg-black flex items-center justify-between px-8 pb-8 safe-area-bottom">
+            <button onclick="app.stopCamera()" class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-md">
+                <i data-lucide="x" width="24" height="24"></i>
+            </button>
+            <button onclick="app.takePicture()" class="w-20 h-20 rounded-full bg-white border-4 border-slate-300 flex items-center justify-center active:scale-95 transition shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                <div class="w-16 h-16 rounded-full bg-white border-2 border-black"></div>
+            </button>
+            <button onclick="app.switchCamera()" class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-md">
+                <i data-lucide="refresh-cw" width="24" height="24"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- VIEW: LOGIN -->
+    <div id="view-login" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#FF9000] relative overflow-hidden">
+        <!-- Official Pattern & Gradient -->
+        <div class="absolute inset-0 bg-gradient-to-br from-[#FF9000] via-[#FF6B00] to-[#E65100]"></div>
+        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <!-- Decorative Shapes -->
+        <div class="absolute top-[-100px] right-[-100px] w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-[-50px] left-[-50px] w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl"></div>
+        
+        <div class="w-full max-w-sm flex flex-col items-center z-10 relative">
+            <div class="w-28 h-28 bg-white/20 backdrop-blur-md rounded-[2rem] p-3 mb-8 shadow-2xl flex items-center justify-center rotate-3 hover:rotate-0 transition-transform duration-500">
+                <div class="w-full h-full bg-white rounded-[1.5rem] logo-placeholder shadow-inner"></div>
+            </div>
+            
+            <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tight drop-shadow-sm">Jurnal Guru</h1>
+            <p class="text-orange-100 text-xs mb-10 tracking-[0.2em] uppercase font-bold bg-white/10 px-4 py-1 rounded-full backdrop-blur-sm">SD Negeri 3 Krisak</p>
+            
+            <div id="login-error" class="hidden-view w-full mb-4 p-4 bg-red-500/90 text-white rounded-2xl text-sm flex items-center gap-3 backdrop-blur-md shadow-lg animate-bounce">
+                <i data-lucide="alert-circle" width="20" height="20"></i> <span id="login-error-text"></span>
+            </div>
+            
+            <form id="form-login" class="w-full space-y-6">
+                <div class="relative group">
+                    <input type="password" id="login-pin" inputmode="numeric" maxlength="6" required 
+                           class="peer w-full h-20 px-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/30 text-center text-4xl tracking-[0.5em] font-bold text-white placeholder-transparent focus:outline-none focus:bg-white/20 focus:border-white/60 transition-all shadow-inner" 
+                           placeholder="PIN">
+                    <label class="absolute left-0 top-0 w-full h-full flex items-center justify-center text-orange-100/70 text-sm font-bold transition-all peer-placeholder-shown:text-base peer-focus:text-xs peer-focus:-translate-y-7 pointer-events-none tracking-widest">
+                        MASUKKAN PIN
+                    </label>
+                </div>
+                
+                <button type="submit" class="w-full h-16 bg-white text-[#E65100] rounded-2xl font-extrabold text-lg shadow-xl shadow-orange-900/20 hover:bg-orange-50 transition-all transform active:scale-95 flex items-center justify-center gap-3">
+                    MASUK APLIKASI <i data-lucide="arrow-right" width="20"></i>
+                </button>
+            </form>
+            <p class="mt-12 text-[10px] text-white/50 font-medium tracking-wide">Official App &copy; 2024</p>
+        </div>
+    </div>
+
+    <!-- VIEW: DASHBOARD -->
+    <div id="view-dashboard" class="hidden-view pb-32 px-5 max-w-2xl mx-auto min-h-screen flex flex-col">
+        <!-- Header -->
+        <div class="pt-8 pb-5 flex justify-between items-center bg-[#fdfbf7] sticky top-0 z-30 transition-all">
+            <div class="flex items-center gap-4">
+                 <!-- USER AVATAR (REPLACES LOGO) -->
+                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#FF9000] to-[#FF5500] text-white flex items-center justify-center font-bold text-xl border-4 border-white shadow-md">
+                    <span id="header-user-avatar">G</span>
+                 </div>
+                 <div>
+                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Selamat Datang</p>
+                     <h2 class="text-lg font-extrabold text-slate-800 leading-none" id="user-name">Guru</h2>
+                 </div>
+            </div>
+            <!-- RIGHT SIDE EMPTY (CLEANER) -->
+            <div></div>
+        </div>
+        
+        <!-- Summary Card -->
+        <div class="bg-gradient-to-br from-[#FF9000] via-[#FF6B00] to-[#FF5500] rounded-[2rem] p-6 text-white shadow-xl shadow-orange-200 mb-8 relative overflow-hidden">
+             <!-- Abstract Pattern -->
+             <div class="absolute right-[-20px] top-[-20px] w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+             <div class="absolute left-[-20px] bottom-[-20px] w-32 h-32 bg-yellow-400/20 rounded-full blur-2xl"></div>
+             
+             <p class="text-orange-100 text-xs font-bold uppercase mb-1 tracking-wide relative z-10" id="user-school">Unit Kerja</p>
+             <h1 class="text-2xl font-bold mb-6 relative z-10">Ringkasan Kinerja</h1>
+             <div class="flex gap-4 relative z-10">
+                 <div class="bg-white/20 backdrop-blur-md rounded-2xl p-4 flex-1 border border-white/10">
+                     <p class="text-[10px] text-orange-100 font-bold uppercase mb-1">Total Kegiatan</p>
+                     <p class="text-3xl font-extrabold" id="dash-total-act">0</p>
+                 </div>
+                 <div class="bg-white/20 backdrop-blur-md rounded-2xl p-4 flex-1 border border-white/10">
+                     <p class="text-[10px] text-orange-100 font-bold uppercase mb-1">Bulan Ini</p>
+                     <p class="text-lg font-bold truncate leading-loose" id="dash-month-label">-</p>
+                 </div>
+             </div>
+        </div>
+        
+        <!-- Filter -->
+        <div class="flex gap-3 mb-6">
+            <select id="filter-month" class="bg-white text-slate-700 px-5 py-3 rounded-2xl text-sm font-bold shadow-sm border border-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-100 flex-1 appearance-none"></select>
+            <select id="filter-year" class="bg-white text-slate-700 px-5 py-3 rounded-2xl text-sm font-bold shadow-sm border border-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-100 w-28 appearance-none text-center"></select>
+        </div>
+
+        <div class="flex-grow">
+            <div id="tab-content-list">
+                 <div id="dashboard-list" class="space-y-4"></div>
+            </div>
+
+            <div id="tab-content-calendar" class="hidden-view">
+                <div class="bg-white p-6 rounded-[2rem] mb-6 border border-slate-100 shadow-sm">
+                    <div class="grid grid-cols-7 mb-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <div>M</div><div>S</div><div>S</div><div>R</div><div>K</div><div>J</div><div>S</div>
+                    </div>
+                    <div id="calendar-container" class="calendar-grid"></div>
+                </div>
+                
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h3 class="font-bold text-slate-800 text-lg" id="selected-date-label">Kegiatan</h3>
+                    <button onclick="app.createForSelectedDate()" id="btn-add-date" class="hidden-view text-xs bg-slate-800 text-white px-5 py-2 rounded-full font-bold shadow-lg shadow-slate-200 hover:bg-slate-700 active:scale-95 transition-all">
+                        + Tambah
+                    </button>
+                </div>
+                <div id="calendar-day-list" class="space-y-4 pb-4"></div>
+            </div>
+        </div>
+
+        <template id="template-empty">
+            <div class="flex flex-col items-center justify-center py-16 text-center opacity-70">
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-100">
+                    <i data-lucide="clipboard-list" width="36" height="36" class="text-slate-300"></i>
+                </div>
+                <h3 class="text-slate-700 font-bold text-base">Belum Ada Data</h3>
+                <p class="text-slate-400 text-xs mt-1">Silakan tambah jurnal kegiatan baru.</p>
+            </div>
+        </template>
+    </div>
+
+    <!-- VIEW: MONITOR (DUAL MODE: ADMIN & TEACHER STATS) -->
+    <div id="view-monitor" class="hidden-view pb-32 px-5 max-w-2xl mx-auto min-h-screen flex flex-col bg-[#fdfbf7]">
+         <div class="pt-8 pb-5 flex justify-center items-center sticky top-0 bg-[#fdfbf7] z-30">
+            <span class="text-xl font-extrabold text-slate-800 flex items-center gap-2" id="monitor-title">
+                <i data-lucide="shield-check" class="text-primary"></i> Monitor KS
+            </span>
+        </div>
+        
+        <!-- ADMIN CONTROLS (Only visible to KS) -->
+        <div id="admin-controls" class="hidden-view">
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-6 space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Pilih Guru</label>
+                    <select id="admin-filter-guru" onchange="app.fetchAdminHistory()" class="w-full bg-slate-50 text-slate-800 px-4 py-3.5 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-orange-100 outline-none">
+                        <option value="">-- Pilih Guru --</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                     <div>
+                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Dari</label>
+                         <input type="date" id="admin-filter-start" onchange="app.fetchAdminHistory()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none">
+                     </div>
+                     <div>
+                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Sampai</label>
+                         <input type="date" id="admin-filter-end" onchange="app.fetchAdminHistory()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none">
+                     </div>
+                </div>
+            </div>
+            <div id="admin-list-container" class="space-y-4 flex-grow"></div>
+        </div>
+
+        <!-- TEACHER STATS (Visible to Non-KS) -->
+        <div id="teacher-stats" class="hidden-view space-y-6">
+             <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 text-center">
+                 <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Statistik Pribadi</p>
+                 <div class="grid grid-cols-2 gap-6">
+                     <div class="p-4 rounded-2xl bg-orange-50 border border-orange-100">
+                         <div class="text-3xl font-extrabold text-primary mb-1" id="stat-total-year">0</div>
+                         <div class="text-[10px] font-bold text-orange-600 uppercase">Kegiatan Tahun Ini</div>
+                     </div>
+                     <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                         <div class="text-3xl font-extrabold text-blue-600 mb-1" id="stat-avg-month">0</div>
+                         <div class="text-[10px] font-bold text-blue-500 uppercase">Rata-rata / Bulan</div>
+                     </div>
+                 </div>
+             </div>
+             
+             <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-6 rounded-[2rem] text-white shadow-lg relative overflow-hidden">
+                 <div class="relative z-10">
+                     <h3 class="font-bold text-lg mb-2">Tips Jurnal</h3>
+                     <p class="text-sm text-slate-300 leading-relaxed">Isilah jurnal secara rutin setiap hari untuk memudahkan pelaporan kinerja bulanan Anda.</p>
+                 </div>
+                 <div class="absolute right-[-10px] bottom-[-10px] text-white/10">
+                     <i data-lucide="book-open" width="100" height="100"></i>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <!-- VIEW: PROFILE -->
+    <div id="view-profile" class="hidden-view pb-32 px-5 max-w-2xl mx-auto min-h-screen flex flex-col bg-[#fdfbf7]">
+         <div class="pt-8 pb-5 flex justify-center items-center sticky top-0 bg-[#fdfbf7] z-30">
+            <span class="text-xl font-extrabold text-slate-800">Profil Pengguna</span>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 mb-6 text-center relative overflow-hidden">
+            <!-- Orange Gradient Header -->
+            <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-[#FF9000] to-[#FF5500]"></div>
+            
+            <div class="relative mt-12 mb-4">
+                 <div class="w-28 h-28 mx-auto bg-white rounded-full p-2 shadow-lg">
+                     <div class="w-full h-full bg-orange-50 rounded-full flex items-center justify-center text-5xl font-bold text-primary">
+                        <span id="profile-initial">G</span>
+                     </div>
+                 </div>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800" id="profile-name">Nama Guru</h2>
+            <div class="inline-block mt-2 px-4 py-1.5 bg-orange-50 text-orange-600 rounded-full text-xs font-bold uppercase tracking-wide border border-orange-100" id="profile-role">Guru</div>
+            
+            <div class="mt-8 pt-8 border-t border-slate-50 grid grid-cols-2 gap-6 text-left bg-slate-50/50 -mx-8 -mb-8 p-8">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">NIP</p>
+                    <p class="text-sm font-bold text-slate-700" id="profile-nip">-</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Unit Kerja</p>
+                    <p class="text-sm font-bold text-slate-700" id="profile-school">-</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm mb-8">
+            <h3 class="text-sm font-bold text-slate-800 mb-5 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i data-lucide="printer" width="20"></i></div>
+                Cetak Laporan
+            </h3>
+            
+            <div class="grid grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 mb-1.5 block">Dari</label>
+                    <input type="date" id="report-start" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 mb-1.5 block">Sampai</label>
+                    <input type="date" id="report-end" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                 <button onclick="app.printReport()" class="flex-1 py-3.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-100 hover:bg-orange-600 transition flex items-center justify-center gap-2 active:scale-95">
+                    <i data-lucide="file-text" width="18"></i> PDF
+                </button>
+                <button onclick="app.downloadExcel()" class="flex-1 py-3.5 bg-white text-emerald-700 border border-emerald-200 rounded-xl font-bold text-sm hover:bg-emerald-50 transition flex items-center justify-center gap-2 active:scale-95">
+                    <i data-lucide="sheet" width="18"></i> Excel
+                </button>
+            </div>
+        </div>
+
+        <button onclick="app.logout()" class="w-full py-4 text-slate-500 font-bold bg-white border border-slate-200 rounded-2xl hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all flex items-center justify-center gap-2 mb-4">
+            <i data-lucide="log-out" width="20"></i> Keluar Aplikasi
+        </button>
+        <p class="text-center text-[10px] text-slate-300 py-4 uppercase tracking-widest font-medium">Official Education App v2.4</p>
+    </div>
+
+    <!-- VIEW: FORM -->
+    <div id="view-form" class="hidden-view bg-[#fdfbf7] min-h-screen relative z-50">
+        <div class="sticky top-0 bg-white/90 backdrop-blur-md z-20 px-5 py-4 flex items-center gap-4 border-b border-slate-100 shadow-sm">
+            <button onclick="app.navigate('dashboard')" class="w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition">
+                <i data-lucide="arrow-left" width="24" height="24"></i>
+            </button>
+            <h2 class="text-xl font-bold text-slate-800 flex-grow" id="form-title">Jurnal Baru</h2>
+            <button type="button" id="btn-simpan-header" onclick="document.getElementById('form-jurnal').dispatchEvent(new Event('submit'))" class="text-white font-bold text-xs px-5 py-2.5 bg-gradient-to-r from-[#FF9000] to-[#FF5500] rounded-full shadow-lg shadow-orange-200 hover:shadow-orange-300 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 active:scale-95">
+                SIMPAN
+            </button>
+        </div>
+        
+        <form id="form-jurnal" class="p-5 space-y-6 max-w-lg mx-auto pb-32">
+            <input type="hidden" id="inp-id" value="">
+            
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-5">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tanggal Kegiatan</label>
+                    <input type="date" id="inp-tanggal" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:border-primary focus:ring-4 focus:ring-orange-50 outline-none transition-all">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                     <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Mulai</label>
+                        <input type="time" id="inp-mulai" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:border-primary focus:ring-4 focus:ring-orange-50 outline-none transition-all">
+                     </div>
+                     <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Selesai</label>
+                        <input type="time" id="inp-selesai" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:border-primary focus:ring-4 focus:ring-orange-50 outline-none transition-all">
+                     </div>
+                </div>
+            </div>
+
+            <!-- Kegiatan -->
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative group focus-within:border-orange-200 transition-colors">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[10px] font-bold text-primary uppercase tracking-wider">Uraian Kegiatan</label>
+                    <button type="button" onclick="app.toggleVoice('kegiatan')" id="btn-voice-kegiatan" class="text-slate-400 hover:text-primary transition-colors p-1"><i data-lucide="mic" width="20"></i></button>
+                </div>
+                <textarea id="inp-kegiatan" required rows="3" class="w-full p-0 bg-transparent border-none focus:ring-0 text-slate-800 placeholder-slate-300 resize-none font-medium text-base leading-relaxed" placeholder="Tulis kegiatan di sini..."></textarea>
+                <div id="suggest-kegiatan" class="suggestion-list hidden-view rounded-b-2xl shadow-xl"></div>
+            </div>
+
+            <!-- Hasil -->
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative group focus-within:border-orange-200 transition-colors">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[10px] font-bold text-primary uppercase tracking-wider">Hasil / Output</label>
+                    <button type="button" onclick="app.toggleVoice('hasil')" id="btn-voice-hasil" class="text-slate-400 hover:text-primary transition-colors p-1"><i data-lucide="mic" width="20"></i></button>
+                </div>
+                <textarea id="inp-hasil" required rows="2" class="w-full p-0 bg-transparent border-none focus:ring-0 text-slate-800 placeholder-slate-300 resize-none font-medium text-base leading-relaxed" placeholder="Tulis hasil yang dicapai..."></textarea>
+                <div id="suggest-hasil" class="suggestion-list hidden-view rounded-b-2xl shadow-xl"></div>
+            </div>
+
+            <!-- Foto -->
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-4">Dokumentasi</label>
+                <div class="flex flex-col gap-4">
+                    <input type="file" id="inp-foto-native" accept="image/*" capture="environment" class="hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <button type="button" onclick="app.startCamera()" class="w-full py-5 px-4 rounded-2xl bg-slate-800 text-white shadow-lg hover:bg-slate-700 active:scale-95 transition-all flex flex-col items-center justify-center gap-2">
+                             <i data-lucide="camera" width="24"></i> <span class="text-xs font-bold tracking-wide">KAMERA</span>
+                        </button>
+                        <div class="relative w-full">
+                            <input type="file" id="inp-foto-gallery" accept="image/*" class="hidden">
+                            <label for="inp-foto-gallery" class="w-full h-full py-5 px-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-slate-500 hover:border-orange-300 hover:bg-orange-50 hover:text-primary active:scale-95 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer">
+                                <i data-lucide="image" width="24"></i> <span class="text-xs font-bold tracking-wide">GALERI</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="preview-container" class="relative hidden-view mt-2">
+                        <img id="img-preview" src="" alt="Preview" class="w-full h-56 object-cover rounded-2xl shadow-md border border-slate-100">
+                        <button type="button" onclick="app.clearImage()" class="absolute top-3 right-3 w-9 h-9 bg-white/90 text-red-500 rounded-full flex items-center justify-center shadow-lg backdrop-blur hover:bg-red-50 transition-colors">
+                            <i data-lucide="trash-2" width="18"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" id="final-photo-base64">
+                    <input type="hidden" id="existing-photo-url">
+                </div>
+            </div>
+            <div class="h-8"></div>
+        </form>
+    </div>
+
+    <!-- BOTTOM NAV (Floating Style) -->
+    <nav id="bottom-nav" class="hidden-view fixed bottom-6 left-6 right-6 h-[72px] bg-white/90 backdrop-blur-xl border border-white/50 rounded-[2rem] flex justify-between items-center z-40 shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-2">
+        <button onclick="app.switchTab('list')" class="nav-item group flex flex-col items-center justify-center gap-1 w-20 h-full rounded-2xl hover:bg-slate-50/50 transition-all" data-target="dashboard">
+            <div class="p-1.5 rounded-xl group-[.text-primary]:bg-orange-50 transition-colors">
+                <i data-lucide="layout-grid" width="22" class="text-slate-400 group-hover:text-primary transition-colors"></i>
+            </div>
+            <span class="text-[10px] font-bold text-slate-400 group-hover:text-primary transition-colors">Jurnal</span>
+        </button>
+
+        <button onclick="app.switchTab('calendar')" class="nav-item group flex flex-col items-center justify-center gap-1 w-20 h-full rounded-2xl hover:bg-slate-50/50 transition-all" data-target="calendar">
+            <div class="p-1.5 rounded-xl group-[.text-primary]:bg-orange-50 transition-colors">
+                <i data-lucide="calendar" width="22" class="text-slate-400 group-hover:text-primary transition-colors"></i>
+            </div>
+            <span class="text-[10px] font-bold text-slate-400 group-hover:text-primary transition-colors">Kalender</span>
+        </button>
+
+        <div class="relative -top-8 mx-2">
+            <button onclick="app.createNew()" class="w-16 h-16 bg-gradient-to-br from-[#FF9000] to-[#FF5500] text-white rounded-full shadow-[0_8px_20px_rgba(255,144,0,0.4)] hover:shadow-[0_12px_25px_rgba(255,144,0,0.5)] hover:scale-105 transition-all active:scale-95 flex items-center justify-center border-4 border-[#fdfbf7]">
+                <i data-lucide="plus" width="32" height="32"></i>
+            </button>
+        </div>
+        
+        <!-- MONITOR/STATS BUTTON -->
+        <button onclick="app.navigate('monitor')" id="nav-monitor-stats" class="nav-item group flex flex-col items-center justify-center gap-1 w-20 h-full rounded-2xl hover:bg-slate-50/50 transition-all" data-target="monitor">
+            <div class="p-1.5 rounded-xl group-[.text-primary]:bg-orange-50 transition-colors">
+                <i data-lucide="shield-check" width="22" class="text-slate-400 group-hover:text-primary transition-colors" id="nav-icon-monitor"></i>
+            </div>
+            <span class="text-[10px] font-bold text-slate-400 group-hover:text-primary transition-colors" id="nav-text-monitor">Monitor</span>
+        </button>
+
+        <button onclick="app.navigate('profile')" class="nav-item group flex flex-col items-center justify-center gap-1 w-20 h-full rounded-2xl hover:bg-slate-50/50 transition-all" data-target="profile">
+            <div class="p-1.5 rounded-xl group-[.text-primary]:bg-orange-50 transition-colors">
+                <i data-lucide="user" width="22" class="text-slate-400 group-hover:text-primary transition-colors"></i>
+            </div>
+            <span class="text-[10px] font-bold text-slate-400 group-hover:text-primary transition-colors">Profil</span>
+        </button>
+    </nav>
+    
+    <!-- PDF Generation Container -->
+    <div id="report-container" class="hidden-view p-4 bg-white text-black font-serif">
+        <div class="flex items-center gap-4 mb-2 border-b-4 border-double border-black pb-4">
+             <div class="w-16 h-16 logo-placeholder grayscale"></div>
+             <div class="flex-grow text-center">
+                 <h2 class="font-bold text-xl uppercase tracking-wide">LAPORAN KINERJA HARIAN GURU</h2>
+                 <h3 id="print-school-header" class="text-lg font-bold uppercase"></h3>
+                 <p id="print-school-address" class="text-sm italic text-gray-700"></p>
+             </div>
+             <div class="w-16"></div>
+        </div>
+
+        <div class="mb-6 text-sm mt-4">
+            <table class="w-full">
+                <tr><td class="w-24 font-bold">Nama</td><td>: <span class="print-name"></span></td><td class="w-4"></td><td class="w-24 font-bold">Unit Kerja</td><td>: <span class="print-school"></span></td></tr>
+                <tr><td class="font-bold">NIP</td><td>: <span class="print-nip"></span></td><td></td><td class="font-bold">Jabatan</td><td>: <span class="print-role"></span></td></tr>
+                <tr><td></td><td></td><td></td><td class="font-bold">Periode</td><td>: <span class="print-period"></span></td></tr>
+            </table>
+        </div>
+
+        <table class="w-full mb-8 border-collapse border border-black text-xs">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border border-black p-2 w-[5%]">No</th>
+                    <th class="border border-black p-2 w-[15%]">Hari/Tanggal</th>
+                    <th class="border border-black p-2 w-[15%]">Waktu</th>
+                    <th class="border border-black p-2 w-[35%]">Uraian Kegiatan</th>
+                    <th class="border border-black p-2 w-[20%]">Hasil / Output</th>
+                    <th class="border border-black p-2 w-[10%]">Lampiran</th>
+                </tr>
+            </thead>
+            <tbody id="print-table-body"></tbody>
+        </table>
+
+        <div class="flex justify-between px-4 mt-8 page-break-inside-avoid">
+             <div class="text-center w-40"><p class="mb-16">Mengetahui,<br/>Kepala Sekolah</p><p class="font-bold underline" id="print-ks-name">...</p><p class="text-xs">NIP. <span id="print-ks-nip">...</span></p></div>
+             <div class="text-center w-40"><p class="mb-1"><span id="print-city">...</span>, <span id="print-date">...</span></p><p class="mb-16 font-bold print-role"></p><p class="font-bold underline print-name"></p><p class="text-xs">NIP. <span class="print-nip"></span></p></div>
+        </div>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZdbql7FcEdv8808ikm9fpaYRylggG1alsCRZ18uFdJk2iYjCPqbGfuClhBCW7t0RclA/exec";
+        let APP_CITY = "Jakarta";
+
+        const app = {
+            user: null, history: [], meta: {}, teachers: [], refs: { kegiatan: [], hasil: [], dictionary:{} }, 
+            currentPhotoBase64: "", isListening: null, selectedDate: null, currentTab: 'list', isAdmin: false, videoStream: null, facingMode: 'environment',
+            isHistoryLoaded: false,
+
+            init: function() {
+                this.initFilters('filter-month', 'filter-year');
+                this.fetchRefs(); 
+                const stored = localStorage.getItem('jg_user');
+                if (stored) {
+                    this.user = JSON.parse(stored);
+                    if(this.user.kota) APP_CITY = this.user.kota;
+                    this.checkAdminStatus();
+                    this.navigate('dashboard');
+                } else {
+                    this.navigate('login');
+                }
+                
+                const today = new Date();
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                ['report-start','report-end','admin-filter-start','admin-filter-end'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.value = (id.includes('start')) ? firstDay.toISOString().split('T')[0] : today.toISOString().split('T')[0];
+                });
+
+                document.getElementById('form-login').addEventListener('submit', (e) => this.handleLogin(e));
+                document.getElementById('form-jurnal').addEventListener('submit', (e) => this.handleSave(e));
+                document.getElementById('inp-foto-gallery').addEventListener('change', (e) => this.handleImage(e));
+                document.getElementById('inp-foto-native').addEventListener('change', (e) => this.handleImage(e));
+                this.setupAutocomplete('inp-kegiatan', 'suggest-kegiatan', 'kegiatan');
+                this.setupAutocomplete('inp-hasil', 'suggest-hasil', 'hasil');
+                lucide.createIcons();
+            },
+            
+            showToast: function(message, type = 'normal') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+                
+                let icon = type === 'error' ? '<i data-lucide="alert-circle" width="18" class="text-red-300"></i>' : '<i data-lucide="check-circle" width="18" class="text-emerald-400"></i>';
+                
+                toast.innerHTML = `<span>${message}</span> ${icon}`;
+                container.appendChild(toast);
+                lucide.createIcons();
+                setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-10px)'; setTimeout(() => toast.remove(), 300); }, 3000);
+            },
+
+            // CAMERA LOGIC
+            startCamera: async function() {
+                if (window.location.protocol === 'file:') {
+                    this.showToast("Membuka kamera bawaan...", "normal");
+                    document.getElementById('inp-foto-native').click();
+                    return;
+                }
+                if(this.videoStream) this.videoStream.getTracks().forEach(track => track.stop());
+                document.getElementById('modal-camera').classList.remove('hidden-view');
+                try {
+                    const constraints = { video: { facingMode: this.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } } };
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    this.videoStream = stream;
+                    const video = document.getElementById('camera-stream');
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => { video.play(); };
+                    video.style.transform = (this.facingMode === 'user') ? "scaleX(-1)" : "scaleX(1)";
+                } catch (err) {
+                    this.stopCamera(); this.showToast("Mengalihkan ke Kamera HP...", "error");
+                    setTimeout(() => { document.getElementById('inp-foto-native').click(); }, 500);
+                }
+            },
+            stopCamera: function() {
+                if (this.videoStream) { this.videoStream.getTracks().forEach(track => track.stop()); this.videoStream = null; }
+                document.getElementById('modal-camera').classList.add('hidden-view');
+            },
+            switchCamera: function() { this.facingMode = (this.facingMode === 'environment') ? 'user' : 'environment'; this.startCamera(); },
+            takePicture: function() {
+                const video = document.getElementById('camera-stream');
+                const canvas = document.getElementById('camera-canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+                this.stopCamera(); this.setPhotoResult(dataUrl);
+            },
+            handleImage: async function(e) {
+                let file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) { this.showToast("Ukuran foto max 10MB", "error"); return; }
+                this.toggleLoading(true);
+                try {
+                    if(file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
+                        try {
+                            const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.8 });
+                            file = Array.isArray(blob) ? blob[0] : blob;
+                        } catch(err) { this.toggleLoading(false); return; }
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                             const canvas = document.createElement('canvas');
+                             const sc = 800 / img.width;
+                             canvas.width = 800; canvas.height = img.height * sc;
+                             const ctx = canvas.getContext('2d');
+                             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                             this.setPhotoResult(canvas.toDataURL('image/jpeg', 0.6));
+                             this.toggleLoading(false);
+                        }
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } catch(err) { this.toggleLoading(false); }
+            },
+            setPhotoResult: function(base64String) {
+                this.currentPhotoBase64 = base64String;
+                document.getElementById('final-photo-base64').value = base64String;
+                document.getElementById('img-preview').src = base64String;
+                document.getElementById('preview-container').classList.remove('hidden-view');
+                document.getElementById('existing-photo-url').value = ""; 
+            },
+            clearImage: function() {
+                this.currentPhotoBase64 = "";
+                document.getElementById('final-photo-base64').value = "";
+                document.getElementById('inp-foto-gallery').value = "";
+                document.getElementById('inp-foto-native').value = "";
+                document.getElementById('existing-photo-url').value = "";
+                document.getElementById('preview-container').classList.add('hidden-view');
+                document.getElementById('img-preview').src = "";
+            },
+            
+            fetchRefs: async function() {
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_ref' }) }).then(r => r.json());
+                    if(res.success) {
+                        this.refs.kegiatan = res.kegiatan || [];
+                        this.refs.hasil = res.hasil || [];
+                        this.refs.dictionary = res.dictionary || {};
+                        if(!this.user && res.city) APP_CITY = res.city;
+                    }
+                } catch(e) {}
+            },
+            setupAutocomplete: function(inputId, listId, refKey) {
+                const input = document.getElementById(inputId);
+                const list = document.getElementById(listId);
+                input.addEventListener('input', () => {
+                    const val = input.value.toLowerCase();
+                    if(val.length < 2) { list.classList.add('hidden-view'); return; }
+                    const matches = this.refs[refKey].filter(item => item.toLowerCase().includes(val));
+                    list.innerHTML = '';
+                    if(matches.length > 0) {
+                        matches.forEach(match => {
+                            const div = document.createElement('div'); div.className = 'suggestion-item'; div.innerText = match;
+                            div.onclick = () => { 
+                                input.value = match; 
+                                list.classList.add('hidden-view'); 
+                                // AUTOFILL LOGIC
+                                if(inputId === 'inp-kegiatan' && this.refs.dictionary && this.refs.dictionary[match.toLowerCase()]) {
+                                    document.getElementById('inp-hasil').value = this.refs.dictionary[match.toLowerCase()];
+                                }
+                            };
+                            list.appendChild(div);
+                        });
+                        list.classList.remove('hidden-view');
+                    } else { list.classList.add('hidden-view'); }
+                });
+                document.addEventListener('click', (e) => { if(e.target !== input && e.target !== list) list.classList.add('hidden-view'); });
+            },
+            
+            checkAdminStatus: function() {
+                if(!this.user) return;
+                const role = (this.user.role || "").toLowerCase();
+                this.isAdmin = (role.includes("kepala") || role === "ks");
+                
+                // Toggle UI View
+                if(this.isAdmin) {
+                    document.getElementById('nav-monitor-stats').classList.remove('hidden-view');
+                    document.getElementById('nav-icon-monitor').setAttribute('data-lucide', 'shield-check');
+                    document.getElementById('nav-text-monitor').innerText = "Monitor";
+                    document.getElementById('monitor-title').innerHTML = '<i data-lucide="shield-check" class="text-primary"></i> Monitor KS';
+                    document.getElementById('admin-controls').classList.remove('hidden-view');
+                    document.getElementById('teacher-stats').classList.add('hidden-view');
+                    this.fetchTeachers();
+                } else {
+                    document.getElementById('nav-monitor-stats').classList.remove('hidden-view');
+                    document.getElementById('nav-icon-monitor').setAttribute('data-lucide', 'bar-chart-2');
+                    document.getElementById('nav-text-monitor').innerText = "Statistik";
+                    document.getElementById('monitor-title').innerHTML = '<i data-lucide="bar-chart-2" class="text-primary"></i> Statistik';
+                    document.getElementById('admin-controls').classList.add('hidden-view');
+                    document.getElementById('teacher-stats').classList.remove('hidden-view');
+                }
+                lucide.createIcons();
+            },
+            fetchTeachers: async function() {
+                if(!this.isAdmin) return;
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_teachers' }) }).then(r => r.json());
+                    if(res.success) {
+                        this.teachers = res.data;
+                        const sel = document.getElementById('admin-filter-guru');
+                        sel.innerHTML = '<option value="">-- Pilih Guru --</option>';
+                        this.teachers.forEach(t => sel.innerHTML += `<option value="${t.nip}">${t.nama}</option>`);
+                    }
+                } catch(e) {}
+            },
+            fetchAdminHistory: async function() {
+                if(!this.isAdmin) return;
+                const targetNip = document.getElementById('admin-filter-guru').value;
+                const container = document.getElementById('admin-list-container');
+                if(!targetNip) { container.innerHTML = '<div class="text-center py-10 text-slate-400">Silakan pilih guru terlebih dahulu</div>'; return; }
+
+                this.toggleLoading(true);
+                try {
+                     const res = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'read_history', nip: this.user.nip, asAdmin: true, targetNip: targetNip, startDate: document.getElementById('admin-filter-start').value, endDate: document.getElementById('admin-filter-end').value })
+                    }).then(r => r.json());
+                    container.innerHTML = '';
+                    if(res.success && res.data.length > 0) {
+                        res.data.forEach(item => {
+                            // Admin view can use a simpler card
+                            const el = document.createElement('div');
+                            el.className = "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm";
+                            let attachmentHtml = '';
+                            if (item.fotoUrl && item.fotoUrl.startsWith('http')) {
+                                attachmentHtml = `<button onclick="app.viewImage('${item.fotoUrl}')" class="text-primary hover:scale-110 transition-transform"><i data-lucide="image" width="18" height="18"></i></button>`;
+                            }
+                            el.innerHTML = `
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="text-xs font-bold text-primary uppercase tracking-wide bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-100">${item.nama}</div>
+                                    <div class="text-[10px] text-slate-400 font-medium">${item.tanggal}</div>
+                                </div>
+                                <h4 class="text-sm font-bold text-slate-800 leading-snug">${item.kegiatan}</h4>
+                                <p class="text-xs text-slate-500 mt-1 line-clamp-2">${item.hasil}</p>
+                                <div class="mt-3 flex items-center gap-3 text-xs text-slate-400 pt-3 border-t border-slate-50">
+                                    <span class="bg-slate-50 text-slate-600 px-2.5 py-1 rounded-lg font-bold border border-slate-100">${item.jamMulai} - ${item.jamSelesai}</span>
+                                    ${attachmentHtml}
+                                </div>
+                            `;
+                            container.appendChild(el);
+                        });
+                        lucide.createIcons();
+                    } else { container.innerHTML = `<div class="text-center py-12 text-slate-400 opacity-70"><div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-2"><i data-lucide="inbox" class="text-slate-300"></i></div>Tidak ada data.</div>`; lucide.createIcons(); }
+                } catch(e) {}
+                this.toggleLoading(false);
+            },
+            initFilters: function(monthId, yearId) {
+                const selMonth = document.getElementById(monthId);
+                const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                selMonth.innerHTML = ''; 
+                months.forEach((m, i) => { const opt = document.createElement('option'); opt.value = i + 1; opt.text = m; if(i + 1 === new Date().getMonth() + 1) opt.selected = true; selMonth.appendChild(opt); });
+                selMonth.addEventListener('change', () => this.fetchHistory(true));
+
+                const selYear = document.getElementById(yearId);
+                const currentYear = new Date().getFullYear();
+                selYear.innerHTML = '';
+                for (let i = currentYear - 1; i <= currentYear + 1; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = i; if(i === currentYear) opt.selected = true; selYear.appendChild(opt); }
+                selYear.addEventListener('change', () => this.fetchHistory(true));
+            },
+            toggleLoading: function(show) { document.getElementById('loading-overlay').classList.toggle('hidden-view', !show); },
+            createNew: function() { this.resetForm(); this.navigate('form'); },
+
+            navigate: function(view) {
+                ['login', 'dashboard', 'form', 'profile', 'monitor'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden-view'));
+                document.getElementById('bottom-nav').classList.add('hidden-view');
+                document.getElementById(`view-${view}`).classList.remove('hidden-view');
+
+                if (['dashboard', 'profile', 'monitor'].includes(view)) {
+                    document.getElementById('bottom-nav').classList.remove('hidden-view');
+                    this.updateNavHighlight(view);
+                }
+                if (view === 'dashboard') {
+                    this.updateUserInfo();
+                    // PERFORMANCE: Only fetch if needed
+                    if(!this.isHistoryLoaded) {
+                         this.fetchHistory();
+                         this.switchTab(this.currentTab);
+                    }
+                }
+                if (view === 'monitor') {
+                    if(this.isAdmin) {
+                        document.getElementById('admin-list-container').innerHTML = '<div class="text-center py-10 text-slate-400">Silakan pilih guru terlebih dahulu</div>';
+                        this.fetchTeachers();
+                    } else {
+                        // Calculate stats for teacher
+                        this.calculateTeacherStats();
+                    }
+                }
+                if (view === 'profile') this.updateUserInfo();
+                lucide.createIcons();
+            },
+            calculateTeacherStats: function() {
+                const totalYear = this.history.length; // Assuming history contains data for selected year context or all
+                // Simpler logic for now: just count what we have in memory (which is filtered by year)
+                document.getElementById('stat-total-year').innerText = totalYear;
+                
+                // Calculate average per month
+                if(totalYear > 0) {
+                    const months = [...new Set(this.history.map(h => h.tanggal.substring(0,7)))].length;
+                    const avg = months > 0 ? (totalYear / months).toFixed(1) : totalYear;
+                    document.getElementById('stat-avg-month').innerText = avg;
+                } else {
+                    document.getElementById('stat-avg-month').innerText = "0";
+                }
+            },
+
+            updateNavHighlight: function(target) {
+                document.querySelectorAll('.nav-item i, .nav-item span').forEach(el => { el.classList.remove('text-primary'); el.classList.add('text-slate-400'); });
+                document.querySelectorAll('.nav-item > div').forEach(el => { el.classList.remove('bg-orange-50'); });
+                
+                let selector = `[data-target="${target}"]`;
+                if (target === 'dashboard') selector = `[data-target="${this.currentTab === 'list' ? 'dashboard' : 'calendar'}"]`;
+                const activeBtn = document.querySelector(`${selector}`);
+                if(activeBtn) {
+                     activeBtn.querySelectorAll('i, span').forEach(el => { el.classList.add('text-primary'); el.classList.remove('text-slate-400'); });
+                     activeBtn.querySelector('div').classList.add('bg-orange-50');
+                }
+            },
+            updateUserInfo: function() {
+                if(!this.user) return;
+                const nameParts = this.user.nama.split(' ');
+                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = nameParts[0];
+                // Update new header avatar
+                if(document.getElementById('header-user-avatar')) document.getElementById('header-user-avatar').innerText = nameParts[0].charAt(0);
+                if(document.getElementById('user-school')) document.getElementById('user-school').innerText = this.user.sekolah;
+                
+                document.getElementById('profile-name').innerText = this.user.nama;
+                document.getElementById('profile-initial').innerText = nameParts[0].charAt(0);
+                document.getElementById('profile-role').innerText = this.user.role || 'Guru';
+                document.getElementById('profile-nip').innerText = this.user.nip;
+                document.getElementById('profile-school').innerText = this.user.sekolah;
+                
+                document.querySelectorAll('.print-name').forEach(el => el.innerText = this.user.nama);
+                document.querySelectorAll('.print-nip').forEach(el => el.innerText = this.user.nip);
+                document.querySelectorAll('.print-role').forEach(el => el.innerText = this.user.role || 'Guru');
+                document.querySelectorAll('.print-school').forEach(el => el.innerText = this.user.sekolah);
+                if(document.getElementById('print-school-address')) document.getElementById('print-school-address').innerText = this.user.alamat || '';
+            },
+            switchTab: function(tabName) {
+                this.currentTab = tabName;
+                document.getElementById('tab-content-calendar').classList.toggle('hidden-view', tabName !== 'calendar');
+                document.getElementById('tab-content-list').classList.toggle('hidden-view', tabName !== 'list');
+                
+                if (document.getElementById('view-dashboard').classList.contains('hidden-view')) this.navigate('dashboard');
+                else this.updateNavHighlight('dashboard');
+                
+                if (tabName === 'calendar') this.renderCalendar();
+            },
+            handleLogin: async function(e) {
+                e.preventDefault();
+                this.toggleLoading(true);
+                document.getElementById('login-error').classList.add('hidden-view');
+                const pin = document.getElementById('login-pin').value;
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', pin }) }).then(r => r.json());
+                    if (res.success) {
+                        this.user = res.user;
+                        localStorage.setItem('jg_user', JSON.stringify(this.user));
+                        if(this.user.kota) APP_CITY = this.user.kota;
+                        this.checkAdminStatus();
+                        this.isHistoryLoaded = false;
+                        this.navigate('dashboard');
+                    } else {
+                        document.getElementById('login-error-text').innerText = res.message;
+                        document.getElementById('login-error').classList.remove('hidden-view');
+                    }
+                } catch (err) { this.showToast("Koneksi Error.", "error"); }
+                this.toggleLoading(false);
+            },
+            logout: function() {
+                if(confirm("Keluar dari aplikasi?")) {
+                    localStorage.removeItem('jg_user');
+                    this.user = null;
+                    this.isAdmin = false;
+                    this.isHistoryLoaded = false;
+                    this.navigate('login');
+                }
+            },
+            fetchHistory: async function(forceRefresh = false) {
+                if(!this.user) return;
+                
+                // PERFORMANCE: Check cache
+                if(this.isHistoryLoaded && !forceRefresh) return;
+
+                this.toggleLoading(true);
+                const month = parseInt(document.getElementById('filter-month').value);
+                const year = parseInt(document.getElementById('filter-year').value);
+
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'read_history', nip: this.user.nip, month, year }) }).then(r => r.json());
+                    if (res.success) {
+                        this.history = res.data;
+                        this.meta = res.meta || {}; 
+                        this.isHistoryLoaded = true; // Mark cached
+                        this.renderList(res.data);
+                        this.renderStats();
+                        if(this.currentTab === 'calendar') this.renderCalendar();
+                        if(this.selectedDate) this.renderDayList(this.selectedDate);
+                    }
+                } catch(e) {}
+                this.toggleLoading(false);
+            },
+            renderStats: function() {
+                const total = this.history.length;
+                document.getElementById('dash-total-act').innerText = total;
+                const m = document.getElementById('filter-month').options[document.getElementById('filter-month').selectedIndex].text;
+                document.getElementById('dash-month-label').innerText = m;
+            },
+            printReport: async function() {
+                 if(!this.user) return;
+                 const startDate = document.getElementById('report-start').value;
+                 const endDate = document.getElementById('report-end').value;
+                 if(!startDate || !endDate) { this.showToast("Pilih tanggal awal dan akhir", "error"); return; }
+                 this.toggleLoading(true);
+                 try {
+                    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'read_history', nip: this.user.nip, startDate, endDate, sortAsc: true }) }).then(r => r.json());
+                    if(res.success && res.data.length > 0) {
+                        this.renderPrintTable(res.data);
+                        document.getElementById('print-ks-name').innerText = res.meta?.ksName || "(Belum ada KS)";
+                        document.getElementById('print-ks-nip').innerText = res.meta?.ksNip || "-";
+                        document.getElementById('print-city').innerText = APP_CITY;
+                        const now = new Date();
+                        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                        document.getElementById('print-date').innerText = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+                        const formatPeriod = (dStr) => { const d = new Date(dStr); return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`; };
+                        document.querySelector('.print-period').innerText = `${formatPeriod(startDate)} s.d. ${formatPeriod(endDate)}`;
+                        
+                        const element = document.getElementById('report-container');
+                        element.classList.remove('hidden-view');
+                        await html2pdf().set({ margin: 0.3, filename: `Laporan_${this.user.nama}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save();
+                        element.classList.add('hidden-view');
+                    } else { this.showToast("Tidak ada data.", "error"); }
+                 } catch(e) { this.showToast("Gagal memuat laporan", "error"); }
+                 this.toggleLoading(false);
+            },
+            renderPrintTable: function(data) {
+                const tbody = document.getElementById('print-table-body');
+                tbody.innerHTML = '';
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                data.forEach((item, index) => {
+                    let photoLink = "-";
+                    if(item.fotoUrl && item.fotoUrl.startsWith("http")) photoLink = `<div style="word-break: break-all; color:blue;">${item.fotoUrl}</div>`;
+                    else if (this.user && this.user.folderId) { const drvUrl = `https://drive.google.com/drive/folders/${this.user.folderId}`; photoLink = `<div style="font-size:11px;font-style:italic;">Foto di Drive.<br><a href="${drvUrl}" target="_blank" style="color:blue;text-decoration:underline;">Buka Folder</a></div>`; }
+                    const d = new Date(item.tanggal);
+                    const formattedDate = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td style="border:1px solid black; padding:6px; text-align:center;">${index + 1}</td><td style="border:1px solid black; padding:6px;">${formattedDate}</td><td style="border:1px solid black; padding:6px; text-align:center; white-space: nowrap;">${item.jamMulai} - ${item.jamSelesai}</td><td style="border:1px solid black; padding:6px;">${item.kegiatan}</td><td style="border:1px solid black; padding:6px;">${item.hasil}</td><td style="border:1px solid black; padding:6px; text-align:center;">${photoLink}</td>`;
+                    tbody.appendChild(tr);
+                });
+            },
+            downloadExcel: async function() {
+                if(!this.user) return;
+                const startDate = document.getElementById('report-start').value;
+                const endDate = document.getElementById('report-end').value;
+                if(!startDate || !endDate) { this.showToast("Pilih tanggal awal dan akhir", "error"); return; }
+                this.toggleLoading(true);
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'download_excel_formal', nip: this.user.nip, startDate, endDate }) }).then(r => r.json());
+                    if (res.success && res.base64) {
+                        const byteCharacters = atob(res.base64);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) { byteNumbers[i] = byteCharacters.charCodeAt(i); }
+                        const blob = new Blob([new Uint8Array(byteNumbers)], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                        const link = document.createElement("a");
+                        link.href = URL.createObjectURL(blob); link.download = res.filename || `Laporan.xlsx`;
+                        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                        this.showToast("Laporan berhasil diunduh.", "normal");
+                    } else { this.showToast(res.message || "Gagal unduh.", "error"); }
+                } catch(e) { this.showToast("Gagal request", "error"); }
+                this.toggleLoading(false);
+            },
+            viewImage: function(url) {
+                if(!url) return;
+                let finalUrl = url;
+                const match = url.match(/[-\w]{25,}/);
+                if (match && (url.includes('drive.google.com') || url.includes('docs.google.com'))) finalUrl = `https://lh3.googleusercontent.com/d/${match[0]}=w1000`;
+                const imgEl = document.getElementById('modal-img-display');
+                imgEl.src = ""; imgEl.classList.add('hidden-view');
+                imgEl.onload = function() { this.classList.remove('hidden-view'); }
+                imgEl.onerror = function() { this.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjY2MiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ij48L2NpcmNsZT48cG9seWxpbmUgcG9pbnRzPSIyMSAxNSAxNiAxMCA1IDIxIj48L3BvbHlsaW5lPjwvc3ZnPg=="; this.classList.remove('hidden-view'); };
+                imgEl.src = finalUrl;
+                document.getElementById('modal-image').classList.remove('hidden-view');
+            },
+            closeImage: function() { document.getElementById('modal-image').classList.add('hidden-view'); setTimeout(() => document.getElementById('modal-img-display').src = "", 300); },
+            renderCalendar: function() {
+                const month = parseInt(document.getElementById('filter-month').value) - 1; 
+                const year = parseInt(document.getElementById('filter-year').value);
+                const firstDay = new Date(year, month, 1).getDay(); 
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const container = document.getElementById('calendar-container');
+                container.innerHTML = '';
+                for (let i = 0; i < firstDay; i++) container.appendChild(document.createElement('div'));
+                const today = new Date();
+                const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const cell = document.createElement('div');
+                    const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    const hasData = this.history.some(h => h.tanggal === dateStr);
+                    let classes = "calendar-day hover:bg-orange-50 hover:border-orange-200";
+                    if (isCurrentMonth && today.getDate() === i) classes += " today";
+                    if (hasData) classes += " has-data";
+                    if (this.selectedDate === dateStr) classes += " selected";
+                    cell.className = classes; cell.innerText = i;
+                    cell.onclick = () => this.selectDate(dateStr, cell);
+                    container.appendChild(cell);
+                }
+            },
+            selectDate: function(dateStr, cellEl) {
+                document.querySelectorAll('.calendar-day').forEach(c => c.classList.remove('selected'));
+                if(cellEl) cellEl.classList.add('selected');
+                this.selectedDate = dateStr;
+                document.getElementById('selected-date-label').innerText = new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+                this.renderDayList(dateStr);
+            },
+            renderDayList: function(dateStr) {
+                const items = this.history.filter(h => h.tanggal === dateStr);
+                const container = document.getElementById('calendar-day-list');
+                document.getElementById('btn-add-date').classList.remove('hidden-view');
+                container.innerHTML = '';
+                if (items.length === 0) container.innerHTML = `<div class="text-xs text-center text-slate-400 py-6 italic opacity-70">Tidak ada kegiatan.</div>`;
+                else items.forEach(item => container.appendChild(this.createListItem(item, true)));
+                lucide.createIcons();
+            },
+            createForSelectedDate: function() { if(this.selectedDate) { this.resetForm(); document.getElementById('inp-tanggal').value = this.selectedDate; this.navigate('form'); } },
+            renderList: function(data) {
+                const container = document.getElementById('dashboard-list');
+                container.innerHTML = '';
+                if (data.length === 0) container.appendChild(document.getElementById('template-empty').content.cloneNode(true));
+                else data.forEach(item => container.appendChild(this.createListItem(item)));
+                lucide.createIcons();
+            },
+            // REDESIGNED CARD (Both List & Calendar use this now)
+            createListItem: function(item, isCompact = false) {
+                const dateObj = new Date(item.tanggal);
+                const dateNum = dateObj.getDate();
+                const dayName = dateObj.toLocaleDateString('id-ID', { weekday: 'short' });
+                const monthName = dateObj.toLocaleDateString('id-ID', { month: 'short' });
+                const safeItem = encodeURIComponent(JSON.stringify(item)).replace(/'/g, "%27");
+                
+                let attachmentHtml = '';
+                if (item.fotoUrl && item.fotoUrl.startsWith('http')) {
+                    attachmentHtml = `<button onclick="app.viewImage('${item.fotoUrl}')" class="text-primary hover:text-orange-700 bg-orange-50 p-1.5 rounded-full transition-transform hover:scale-110 shadow-sm"><i data-lucide="image" width="14" height="14"></i></button>`;
+                }
+
+                const timeLabel = (item.jamMulai && item.jamSelesai) 
+                    ? `${item.jamMulai} - ${item.jamSelesai}` 
+                    : "Waktu belum diisi";
+
+                const el = document.createElement('div');
+                // Estetik: White card, Rounded, Left Accent Border, Shadow
+                el.className = "relative bg-white p-5 rounded-2xl shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border border-slate-100 group overflow-hidden transition-all hover:shadow-orange-100 mb-4";
+                el.innerHTML = `
+                    <!-- Orange Accent Line -->
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-[#FF9000] to-[#FF5500]"></div>
+                    
+                    <!-- Content -->
+                    <div class="pl-2">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">${dayName}, ${dateNum} ${monthName}</span>
+                            <div class="flex gap-2">
+                                 ${attachmentHtml}
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-sm font-bold text-slate-800 leading-snug mb-1 line-clamp-2">${item.kegiatan}</h3>
+                        <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-3">${item.hasil}</p>
+                        
+                        <!-- Footer: Time & Actions -->
+                        <div class="flex justify-between items-center border-t border-slate-50 pt-3 mt-2">
+                            <span class="px-2.5 py-1 rounded-lg bg-orange-50 text-primary text-[10px] font-bold border border-orange-100 flex items-center gap-1">
+                                <i data-lucide="clock" width="10"></i> ${timeLabel}
+                            </span>
+                            
+                            <div class="flex items-center gap-1">
+                                <button onclick="app.editItem('${safeItem}')" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                                    <i data-lucide="pencil" width="16"></i>
+                                </button>
+                                <button onclick="app.deleteItem('${item.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                    <i data-lucide="trash-2" width="16"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return el;
+            },
+            deleteItem: async function(id) {
+                if(!confirm("Yakin ingin menghapus?")) return;
+                this.toggleLoading(true);
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id, nip: this.user.nip }) }).then(r => r.json());
+                    if(res.success) { this.fetchHistory(true); } else { this.showToast("Gagal hapus", "error"); }
+                } catch(e) { this.showToast("Error", "error"); }
+                this.toggleLoading(false);
+            },
+            editItem: function(encodedItem) {
+                const item = JSON.parse(decodeURIComponent(encodedItem));
+                this.navigate('form');
+                document.getElementById('form-title').innerText = "Edit Jurnal";
+                document.getElementById('inp-id').value = item.id;
+                document.getElementById('inp-tanggal').value = item.tanggal;
+                document.getElementById('inp-mulai').value = item.jamMulai;
+                document.getElementById('inp-selesai').value = item.jamSelesai;
+                document.getElementById('inp-kegiatan').value = item.kegiatan;
+                document.getElementById('inp-hasil').value = item.hasil;
+                this.clearImage(); 
+                if (item.fotoUrl && item.fotoUrl.startsWith('http')) {
+                    document.getElementById('existing-photo-url').value = item.fotoUrl;
+                    document.getElementById('img-preview').src = item.fotoUrl;
+                    document.getElementById('preview-container').classList.remove('hidden-view');
+                }
+            },
+            resetForm: function() {
+                document.getElementById('form-title').innerText = "Jurnal Baru";
+                document.getElementById('inp-id').value = "";
+                document.getElementById('existing-photo-url').value = "";
+                const now = new Date();
+                document.getElementById('inp-tanggal').value = now.toISOString().split('T')[0];
+                document.getElementById('inp-kegiatan').value = '';
+                document.getElementById('inp-hasil').value = '';
+                this.clearImage();
+            },
+            handleSave: async function(e) {
+                e.preventDefault();
+                this.toggleLoading(true);
+                const btnSimpan = document.getElementById('btn-simpan-header');
+                const originalText = btnSimpan.innerText;
+                btnSimpan.innerText = "Simpan..."; btnSimpan.disabled = true;
+                let photoData = this.currentPhotoBase64 || document.getElementById('existing-photo-url').value;
+                const data = {
+                    id: document.getElementById('inp-id').value, nip: this.user.nip, nama: this.user.nama,
+                    tanggal: document.getElementById('inp-tanggal').value, jamMulai: document.getElementById('inp-mulai').value,
+                    jamSelesai: document.getElementById('inp-selesai').value, kegiatan: document.getElementById('inp-kegiatan').value,
+                    hasil: document.getElementById('inp-hasil').value, foto: photoData 
+                };
+                try {
+                    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'save', data }) }).then(r => r.json());
+                    if(res.success) { this.fetchRefs(); this.fetchHistory(true); this.navigate('dashboard'); this.showToast("Data Tersimpan!"); } 
+                    else { this.showToast(res.message, "error"); }
+                } catch(e) { this.showToast("Error saving", "error"); }
+                this.toggleLoading(false);
+                btnSimpan.innerText = originalText; btnSimpan.disabled = false;
+            },
+            toggleVoice: function(field) {
+                if (!('webkitSpeechRecognition' in window)) { this.showToast("Fitur suara tidak didukung.", "error"); return; }
+                if (this.isListening) return; 
+                const recognition = new window.webkitSpeechRecognition();
+                recognition.lang = 'id-ID'; recognition.interimResults = false; recognition.maxAlternatives = 1;
+                const btn = document.getElementById(`btn-voice-${field}`);
+                btn.classList.add('text-primary', 'animate-pulse');
+                recognition.onresult = (event) => { const transcript = event.results[0][0].transcript; const input = document.getElementById(`inp-${field}`); input.value = input.value ? input.value + ' ' + transcript : transcript; };
+                recognition.onend = () => { this.isListening = false; btn.classList.remove('text-primary', 'animate-pulse'); };
+                this.isListening = true; recognition.start();
+            },
+        };
+        document.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>
