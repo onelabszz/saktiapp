@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#FF9000">
+    <meta name="description" content="Portal Aplikasi SD Negeri 3 Krisak">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png">
+    <title>Sakti App SDN 3 Krisak</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    colors: { primary: '#FF9000', primaryDark: '#e65100', surface: '#f8fafc' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s ease; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        .marquee-container { overflow: hidden; white-space: nowrap; width: 100%; }
+        .marquee-text { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        @media all and (display-mode: standalone) { #install-prompt-container, #install-sheet-overlay { display: none !important; } }
+        
+        /* Kustomisasi SweetAlert */
+        .swal2-popup { border-radius: 1.5rem !important; font-family: 'Inter', sans-serif !important; }
+        .dark .swal2-popup { background-color: #1e293b !important; color: #f8fafc !important; }
+        .dark .swal2-title, .dark .swal2-html-container { color: #f8fafc !important; }
+    </style>
+</head>
+<body class="text-slate-800 dark:text-slate-100 min-h-screen relative overflow-x-hidden md:flex md:justify-center bg-slate-50 dark:bg-slate-900 no-scrollbar pb-24 md:pb-0">
+
+    <div id="loader" class="fixed inset-0 z-[100] bg-white dark:bg-slate-900 flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="relative w-16 h-16 flex items-center justify-center mb-4">
+            <div class="absolute inset-0 border-4 border-orange-100 dark:border-slate-800 border-t-primary rounded-full animate-spin"></div>
+            <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-8 h-8 object-contain animate-pulse">
+        </div>
+        <p class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Menyiapkan Aplikasi...</p>
+    </div>
+
+    <header class="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-5 py-3 flex justify-between items-center shadow-sm h-[65px]">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full border border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm shrink-0 bg-orange-50 dark:bg-slate-800 p-1">
+                <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-full h-full object-contain">
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-800 dark:text-white text-lg leading-none tracking-tight">Sakti App</h1>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5">SD Negeri 3 Krisak</p>
+            </div>
+        </div>
+        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            <i data-lucide="moon" id="theme-icon-mobile" class="w-5 h-5"></i>
+        </button>
+    </header>
+
+    <main id="main-content" class="relative z-10 max-w-5xl mx-auto w-full min-h-screen px-5 pt-24 pb-10 md:py-12 flex flex-col md:flex-row gap-8 lg:gap-16 hidden">
+        
+        <aside class="hidden md:flex md:w-5/12 lg:w-4/12 flex-col md:sticky md:top-12 h-fit text-left fade-in">
+            <div class="w-24 h-24 rounded-[1.5rem] bg-white dark:bg-slate-800 p-4 shadow-sm border border-orange-100 dark:border-slate-700 flex items-center justify-center mb-6 relative group">
+                <div class="absolute inset-0 bg-orange-50 dark:bg-slate-700 rounded-[1.5rem] rotate-6 group-hover:rotate-12 transition -z-10"></div>
+                <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" alt="Logo" class="w-full h-full object-contain">
+            </div>
+            <h1 class="text-3xl font-black text-slate-800 dark:text-white leading-none mb-2 tracking-tight">Sakti App</h1>
+            <p class="text-slate-400 dark:text-slate-500 text-base font-bold tracking-wide mb-4">SD Negeri 3 Krisak</p>
+            <div class="inline-block px-3 py-1 bg-orange-50 dark:bg-orange-900/30 rounded-full border border-orange-100 dark:border-orange-800/50 mb-6">
+                <p class="text-[10px] font-extrabold text-primary uppercase tracking-wider">Berakhlak Cerdas Berprestasi</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <button onclick="openProfile()" class="w-full bg-slate-800 dark:bg-primary hover:bg-slate-900 dark:hover:bg-primaryDark text-white font-bold py-3.5 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
+                    <i data-lucide="user-circle" class="w-5 h-5"></i> Profil
+                </button>
+                <button onclick="toggleDarkMode()" class="w-full bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-yellow-400 font-bold py-3.5 rounded-xl transition flex justify-center items-center gap-2">
+                    <i data-lucide="moon" id="theme-icon-desktop" class="w-5 h-5"></i> Tema
+                </button>
+            </div>
+        </aside>
+
+        <div class="md:w-7/12 lg:w-8/12 flex flex-col gap-5 fade-in delay-100 w-full">
+            <div id="ota-banner" class="hidden rounded-xl p-3 flex items-center gap-3 text-sm font-bold shadow-sm border">
+                <i data-lucide="bell-ring" class="w-5 h-5 shrink-0"></i>
+                <div class="marquee-container w-full text-xs font-medium"><span class="marquee-text" id="ota-text"></span></div>
+            </div>
+
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                <div class="relative z-10 flex justify-between items-start">
+                    <div>
+                        <h2 class="text-lg md:text-2xl font-bold leading-tight mb-1">Selamat Datang,</h2>
+                        <p class="text-orange-50 text-xs md:text-sm font-medium">Silakan pilih menu layanan digital di bawah ini.</p>
+                    </div>
+                    <span id="app-version" class="text-[10px] font-bold bg-white/20 px-2 py-1 rounded-md backdrop-blur-sm">v1.0</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 px-1 mt-1">
+                <i data-lucide="grid-2x2" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i>
+                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Menu Utama</span>
+            </div>
+
+            <div id="app-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4"></div>
+            
+            <div class="mt-4 md:hidden text-center pb-8 opacity-40">
+                <p class="text-slate-400 text-[10px] font-bold tracking-widest uppercase">
+                    &copy; 2026 SDN 3 Krisak
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <button onclick="openProfile()" class="md:hidden fixed bottom-6 right-6 z-40 bg-gradient-to-br from-primary to-primaryDark text-white w-14 h-14 rounded-full shadow-lg shadow-orange-500/40 flex items-center justify-center hover:scale-105 active:scale-90 transition-transform border border-white/20 backdrop-blur-sm">
+        <i data-lucide="user" class="w-6 h-6"></i>
+    </button>
+
+    <div id="login-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-5">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModals()"></div>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300 p-8" id="login-content">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="w-16 h-16 bg-orange-50 dark:bg-slate-700 text-primary rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-slate-600">
+                <i data-lucide="lock" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-xl font-bold text-center text-slate-800 dark:text-white mb-1">Login Guru</h3>
+            <p class="text-xs text-center text-slate-500 dark:text-slate-400 mb-6">Masukkan PIN GTK Anda untuk melihat profil.</p>
+            <form onsubmit="submitLogin(event)">
+                <input type="password" id="login-pin" class="w-full text-center text-3xl tracking-[0.5em] font-bold border-2 border-slate-200 dark:border-slate-600 bg-transparent dark:text-white rounded-xl py-4 mb-5 outline-none focus:border-primary transition" maxlength="6" required placeholder="••••••">
+                <button type="submit" id="btn-submit-login" class="w-full bg-primary text-white font-bold py-4 rounded-xl hover:bg-primaryDark active:scale-95 transition shadow-lg flex justify-center items-center gap-2">
+                    Buka Profil
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-5">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModals()"></div>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="profile-content">
+            <div class="bg-gradient-to-br from-orange-500 to-orange-600 p-6 pt-8 text-white text-center relative border-b-4 border-orange-700 dark:border-orange-800">
+                <button onclick="closeModals()" class="absolute top-4 right-4 text-white/70 hover:text-white bg-black/10 rounded-full p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 backdrop-blur-md border-2 border-white/50 text-3xl font-black tracking-tighter" id="prof-initial">U</div>
+                <h3 class="text-xl font-bold leading-tight" id="prof-nama">Nama Guru</h3>
+                <div class="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full border border-white/30 text-[10px] font-bold uppercase tracking-wider text-orange-50" id="prof-jabatan">Jabatan</div>
+            </div>
+            <div class="p-6 bg-slate-50 dark:bg-slate-800/50">
+                <div class="space-y-4 mb-6">
+                    <div class="bg-white dark:bg-slate-700 p-3 rounded-xl border border-slate-100 dark:border-slate-600 shadow-sm">
+                        <p class="text-[10px] text-slate-400 dark:text-slate-400 font-bold uppercase mb-0.5">NIP / NI PPPK</p>
+                        <p class="text-sm font-bold text-slate-700 dark:text-white" id="prof-nip">-</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-700 p-3 rounded-xl border border-slate-100 dark:border-slate-600 shadow-sm">
+                        <p class="text-[10px] text-slate-400 dark:text-slate-400 font-bold uppercase mb-0.5">Unit Kerja</p>
+                        <p class="text-sm font-bold text-slate-700 dark:text-white" id="prof-instansi">-</p>
+                    </div>
+                </div>
+                <button onclick="confirmLogout()" class="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold py-3.5 rounded-xl transition flex justify-center items-center gap-2 border border-red-100 dark:border-red-800/30">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Keluar / Ganti Akun
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="install-prompt-container" class="hidden"></div>
+    <div id="install-sheet-overlay" class="fixed inset-0 z-[90] flex items-end justify-center hidden">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity opacity-0" id="install-backdrop" onclick="hideInstallSheet()"></div>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md mx-auto rounded-t-3xl p-6 shadow-2xl relative z-10 transform translate-y-full transition-transform duration-300" id="install-sheet">
+            <div class="w-12 h-1.5 bg-slate-200 dark:bg-slate-600 rounded-full mx-auto mb-6"></div>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-orange-50 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-slate-600 p-2">
+                    <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-full h-full object-contain">
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Pasang Aplikasi</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed px-4">
+                    Install Sakti App ke HP Anda agar lebih cepat diakses layar penuh tanpa repot mengetik link.
+                </p>
+            </div>
+            <div class="space-y-3">
+                <button id="btn-install-now" class="w-full bg-primary hover:bg-primaryDark text-white font-bold py-3.5 rounded-xl shadow-lg shadow-orange-200/50 dark:shadow-none active:scale-95 transition flex justify-center items-center gap-2">
+                    <i data-lucide="download" class="w-5 h-5"></i><span>Pasang Sekarang</span>
+                </button>
+                <button onclick="hideInstallSheet()" class="w-full bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-semibold py-3.5 rounded-xl transition text-xs">Nanti Saja</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzzwvdqhcmsSub9Jpd75Kg-dwmCJ4OSL_GM3UT9MHNvSIx3d7rA7eV9HTq3vUYfp-0/exec";
+        
+        // --- 1. DARK MODE LOGIC ---
+        function applyTheme(isDark) {
+            const html = document.documentElement;
+            const iconMobile = document.getElementById('theme-icon-mobile');
+            const iconDesktop = document.getElementById('theme-icon-desktop');
+            
+            if (isDark) {
+                html.classList.add('dark');
+                if(iconMobile) iconMobile.setAttribute('data-lucide', 'sun');
+                if(iconDesktop) iconDesktop.setAttribute('data-lucide', 'sun');
+            } else {
+                html.classList.remove('dark');
+                if(iconMobile) iconMobile.setAttribute('data-lucide', 'moon');
+                if(iconDesktop) iconDesktop.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = !html.classList.contains('dark');
+            localStorage.setItem('sakti_theme', isDark ? 'dark' : 'light');
+            applyTheme(isDark);
+        }
+
+        if (localStorage.getItem('sakti_theme') === 'dark' || (!('sakti_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            applyTheme(true);
+        }
+
+        // --- 2. DATA LOAD & RENDER ---
+        const colorMap = {
+            blue: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-100 dark:border-blue-800/50', ota: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
+            red: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', border: 'border-red-100 dark:border-red-800/50', ota: 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' },
+            green: { bg: 'bg-green-50 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400', border: 'border-green-100 dark:border-green-800/50', ota: 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800' },
+            orange: { bg: 'bg-orange-50 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', border: 'border-orange-100 dark:border-orange-800/50', ota: 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800' },
+            purple: { bg: 'bg-purple-50 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-100 dark:border-purple-800/50', ota: 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800' },
+            teal: { bg: 'bg-teal-50 dark:bg-teal-900/30', text: 'text-teal-600 dark:text-teal-400', border: 'border-teal-100 dark:border-teal-800/50', ota: 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800' },
+            yellow: { bg: 'bg-yellow-50 dark:bg-yellow-900/30', text: 'text-yellow-600 dark:text-yellow-400', border: 'border-yellow-100 dark:border-yellow-800/50', ota: 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' }
+        };
+
+        window.addEventListener('load', async () => {
+            if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(console.error);
+            try {
+                const response = await fetch(`${API_URL}?action=public_load`);
+                const data = await response.json();
+                if (data.status === "success") {
+                    renderMenu(data.raw_menu);
+                    if(data.info.versi) document.getElementById('app-version').innerText = data.info.versi;
+                    if (data.info.status === 'ON' && data.info.pesan) {
+                        const banner = document.getElementById('ota-banner');
+                        banner.className = `rounded-xl p-3 flex items-center gap-3 text-sm font-bold shadow-sm border mb-1 ${colorMap[data.info.warna].ota}`;
+                        document.getElementById('ota-text').innerText = data.info.pesan;
+                        banner.classList.remove('hidden');
+                    }
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat!',
+                    text: 'Periksa koneksi internet Anda.',
+                    confirmButtonColor: '#FF9000'
+                });
+            } finally {
+                setTimeout(() => {
+                    document.getElementById('loader').classList.add('opacity-0', 'pointer-events-none');
+                    document.getElementById('main-content').classList.remove('hidden');
+                    lucide.createIcons();
+                }, 500);
+            }
+        });
+
+        function renderMenu(rawMenu) {
+            const grid = document.getElementById('app-grid');
+            grid.innerHTML = ''; 
+            rawMenu.forEach((row, index) => {
+                if (index === 0 || !row[0]) return; 
+                const colors = colorMap[row[4]] || colorMap['blue'];
+                const target = (row[5] || "all").toLowerCase();
+                const displayClass = target === "mobile" ? "block md:hidden" : target === "desktop" ? "hidden md:block" : "block";
+                const spanClass = (row[7] || "").toLowerCase() === "wide" ? "md:col-span-2" : "";
+                const badgeHTML = row[8] ? `<span class="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl shadow-sm uppercase">${row[8]}</span>` : "";
+
+                grid.insertAdjacentHTML('beforeend', `
+                    <a href="${row[2]}" class="${displayClass} ${spanClass} group h-full">
+                        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-orange-200 dark:hover:border-orange-500 transition-all active:scale-[0.98] flex items-center gap-4 relative overflow-hidden h-full">
+                            ${badgeHTML}
+                            <div class="w-12 h-12 shrink-0 rounded-xl ${colors.bg} ${colors.text} flex items-center justify-center border ${colors.border}">
+                                <i data-lucide="${row[3] || 'circle'}" class="w-6 h-6"></i>
+                            </div>
+                            <div class="flex-grow pr-2">
+                                <h3 class="text-sm font-bold text-slate-800 dark:text-white">${row[0]}</h3>
+                                <p class="text-[10px] text-slate-400 dark:text-slate-400 font-medium leading-snug mt-0.5">${row[1]}</p>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 dark:text-slate-600"></i>
+                        </div>
+                    </a>
+                `);
+            });
+        }
+
+        // --- 3. LOGIN & SWEETALERT ---
+        function openProfile() {
+            const userData = localStorage.getItem('sakti_user');
+            if (userData) {
+                const user = JSON.parse(userData);
+                document.getElementById('prof-initial').innerText = user.nama.charAt(0).toUpperCase();
+                document.getElementById('prof-nama').innerText = user.nama;
+                document.getElementById('prof-jabatan').innerText = user.jabatan || 'Guru';
+                document.getElementById('prof-nip').innerText = user.nip || '-';
+                document.getElementById('prof-instansi').innerText = user.instansi || '-';
+                showModal('profile-modal', 'profile-content');
+            } else {
+                showModal('login-modal', 'login-content');
+            }
+        }
+
+        async function submitLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('login-pin').value;
+            const btn = document.getElementById('btn-submit-login');
+            
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memeriksa...';
+            lucide.createIcons();
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}?action=user_login&pin=${pin}`);
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    localStorage.setItem('sakti_user', JSON.stringify(data.user));
+                    closeModals();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Masuk',
+                        text: `Selamat datang, ${data.user.nama}!`,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => openProfile(), 1600);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: data.message, confirmButtonColor: '#FF9000' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Koneksi Terputus', text: 'Coba lagi beberapa saat.', confirmButtonColor: '#FF9000' });
+            }
+            
+            btn.innerHTML = 'Buka Profil';
+            btn.disabled = false;
+            document.getElementById('login-pin').value = '';
+        }
+
+        function confirmLogout() {
+            closeModals();
+            Swal.fire({
+                title: 'Keluar Akun?',
+                text: "Anda harus login kembali untuk melihat profil.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Keluar!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('sakti_user');
+                    Swal.fire({ icon: 'success', title: 'Berhasil Keluar', showConfirmButton: false, timer: 1200 });
+                }
+            });
+        }
+
+        function showModal(modalId, contentId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(contentId);
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 50);
+        }
+
+        function closeModals() {
+            const contents = ['login-content', 'profile-content'];
+            contents.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.classList.remove('scale-100', 'opacity-100');
+                    el.classList.add('scale-95', 'opacity-0');
+                }
+            });
+            setTimeout(() => {
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('profile-modal').classList.add('hidden');
+            }, 300);
+        }
+
+        // --- PWA INSTALL PROMPT ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); deferredPrompt = e;
+        });
+        
+        function hideInstallSheet() {
+            document.getElementById('install-backdrop').classList.add('opacity-0');
+            document.getElementById('install-sheet').classList.add('translate-y-full');
+            setTimeout(() => document.getElementById('install-sheet-overlay').classList.add('hidden'), 300);
+        }
+    </script>
+</body>
+</html>
