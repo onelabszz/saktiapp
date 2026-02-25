@@ -22,6 +22,7 @@
                         'glow': '0 0 20px rgba(255, 144, 0, 0.4)',
                         'card': '0 8px 25px -8px rgba(0,0,0,0.08)',
                         'soft': '0 4px 15px -2px rgba(0,0,0,0.04)',
+                        'floating': '0 10px 30px -5px rgba(0,0,0,0.2)',
                     }
                 }
             }
@@ -33,7 +34,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* Optimasi Native Feel: Mematikan efek goyang bawaan browser */
         html, body {
             overscroll-behavior-y: none; 
             font-family: 'Inter', sans-serif; 
@@ -44,10 +44,9 @@
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
+        .fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Efek Ripple Widget Android */
         .ripple { position: relative; overflow: hidden; transform: translate3d(0, 0, 0); }
         .ripple:after {
             content: ""; display: block; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none;
@@ -56,17 +55,9 @@
         }
         .ripple:active:after { transform: scale(0, 0); opacity: 0.2; transition: 0s; }
         
-        /* Kustomisasi SweetAlert HP */
         .swal2-popup { border-radius: 1.5rem !important; font-family: 'Inter', sans-serif !important; width: 90% !important; max-width: 380px !important; }
         .dark .swal2-popup { background-color: #1e293b !important; color: #fdfbf7 !important; }
         .dark .swal2-title, .dark .swal2-html-container { color: #fdfbf7 !important; }
-        
-        /* Toggle Switch Custom */
-        .toggle-checkbox:checked { right: 0; border-color: #FF9000; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #FF9000; }
-        .toggle-checkbox { right: 4px; z-index: 1; border-color: transparent; top: 4px; }
-        .toggle-label { width: 44px; height: 24px; background-color: #cbd5e1; border-radius: 9999px; }
-        .dark .toggle-label { background-color: #475569; }
 
         @media all and (display-mode: standalone) { #install-prompt-container, #install-sheet-overlay { display: none !important; } }
     </style>
@@ -76,14 +67,7 @@
     <div class="fixed top-[-50px] left-[-50px] w-64 h-64 md:w-80 md:h-80 bg-orange-200/40 dark:bg-orange-900/10 rounded-full blur-3xl opacity-60 z-0 pointer-events-none"></div>
     <div class="fixed bottom-[-50px] right-[-50px] w-48 h-48 md:w-64 md:h-64 bg-yellow-200/40 dark:bg-yellow-900/10 rounded-full blur-3xl opacity-60 z-0 pointer-events-none"></div>
 
-    <div id="loader" class="fixed inset-0 z-[100] bg-primary dark:bg-slate-900 flex flex-col items-center justify-center transition-opacity duration-200">
-        <div class="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mb-4 p-2 bg-white dark:bg-slate-800 rounded-2xl md:rounded-[1.5rem] shadow-card">
-            <div class="absolute inset-0 border-[3px] border-slate-100 dark:border-slate-700 border-t-primary rounded-2xl md:rounded-[1.5rem] animate-spin"></div>
-            <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-10 h-10 md:w-12 md:h-12 object-contain animate-pulse">
-        </div>
-    </div>
-
-    <header class="md:hidden sticky top-0 left-0 right-0 z-50 px-5 py-4 flex justify-between items-center bg-primary dark:bg-slate-900 transition-colors duration-300 shadow-md">
+    <header class="md:hidden sticky top-0 left-0 right-0 z-50 px-5 pb-3 pt-[calc(env(safe-area-inset-top)+12px)] flex justify-between items-center bg-primary dark:bg-slate-900 transition-colors duration-300">
         <div class="flex items-center gap-3.5">
             <div class="w-11 h-11 rounded-[0.8rem] bg-white/20 backdrop-blur-md p-1.5 flex items-center justify-center shrink-0 border border-white/30 shadow-sm">
                 <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-full h-full object-contain drop-shadow-md">
@@ -95,7 +79,7 @@
         </div>
     </header>
 
-    <main id="main-content" class="relative z-10 max-w-5xl mx-auto w-full min-h-screen px-4 md:px-6 pt-5 pb-8 md:py-12 flex flex-col md:flex-row gap-6 md:gap-16 hidden">
+    <main id="main-content" class="relative z-10 max-w-5xl mx-auto w-full min-h-screen px-4 md:px-6 pt-5 pb-8 md:py-12 flex flex-col md:flex-row gap-6 md:gap-16">
         
         <aside class="hidden md:flex md:w-5/12 lg:w-4/12 flex-col md:sticky md:top-12 h-fit text-left fade-in">
             <div class="w-24 h-24 rounded-[1.5rem] bg-white dark:bg-slate-800 p-4 shadow-soft border border-orange-100 dark:border-slate-700 flex items-center justify-center mb-6 relative group">
@@ -124,30 +108,32 @@
                             <span class="text-xs font-bold uppercase tracking-widest">Portal Digital</span>
                         </div>
                         <h2 id="greeting-text" class="text-2xl md:text-3xl font-black leading-tight mb-1 drop-shadow-md">Selamat Datang!</h2>
-                        <p class="text-white/90 text-sm md:text-base font-medium">Pilih aplikasi untuk memulai aktivitas.</p>
+                        <p id="greeting-desc" class="text-white/90 text-sm md:text-base font-medium">Pilih aplikasi untuk memulai aktivitas.</p>
                     </div>
-                    <span id="app-version" class="text-[10px] font-bold bg-white/20 px-2.5 py-1 rounded-lg border border-white/20 shadow-inner">v1.0</span>
                 </div>
 
-                <div id="hero-ota-banner" class="hidden relative z-10 mt-5 pt-5 border-t border-white/20 transition-all duration-500 origin-top">
-                    <div class="bg-white/10 backdrop-blur-md rounded-[1.2rem] p-4 border border-white/20 flex items-start gap-3.5 relative shadow-inner">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                <div id="hero-ota-banner" class="hidden relative z-20 mt-6 pt-2 transition-all duration-500 origin-top">
+                    <div id="hero-ota-box" class="rounded-[1.2rem] p-4 flex items-start gap-3.5 relative shadow-floating transform -translate-y-2 border border-white/20">
+                        <div class="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center shrink-0 border border-white/30 backdrop-blur-sm">
                             <i data-lucide="megaphone" class="w-5 h-5 text-white"></i>
                         </div>
                         <div class="flex-grow pr-6 pt-0.5">
-                            <h4 class="text-[9px] font-black uppercase tracking-widest text-white/70 mb-1">Info Sekolah</h4>
+                            <h4 class="text-[9px] font-black uppercase tracking-widest text-white/80 mb-1">Info Sekolah</h4>
                             <p class="text-xs md:text-sm font-bold text-white leading-snug drop-shadow-sm" id="hero-ota-text"></p>
                         </div>
-                        <button onclick="closeHeroBanner()" class="absolute top-3.5 right-3.5 p-1.5 rounded-full text-white/60 hover:bg-white/30 hover:text-white transition active:scale-90">
+                        <button onclick="closeHeroBanner()" class="absolute top-3.5 right-3.5 p-1.5 rounded-full text-white/80 hover:bg-white/30 hover:text-white transition active:scale-90">
                             <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 px-1 fade-in mt-2">
-                <i data-lucide="layout-grid" class="w-4 h-4 text-primary"></i>
-                <span class="text-[10px] md:text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Menu Layanan</span>
+            <div class="flex items-center justify-between px-1 fade-in mt-2">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="layout-grid" class="w-4 h-4 text-primary"></i>
+                    <span class="text-[10px] md:text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Menu Layanan</span>
+                </div>
+                <i data-lucide="loader-2" id="sync-indicator" class="w-3.5 h-3.5 text-slate-300 animate-spin hidden"></i>
             </div>
 
             <div id="app-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4"></div>
@@ -159,7 +145,7 @@
         </div>
     </main>
 
-    <button onclick="openSettings()" class="md:hidden fixed bottom-6 right-5 z-40 bg-gradient-to-br from-primary to-primaryDark dark:from-slate-800 dark:to-slate-900 text-white w-14 h-14 rounded-[1.2rem] shadow-glow dark:shadow-none flex items-center justify-center hover:scale-105 active:scale-90 transition-transform border border-white/20">
+    <button onclick="openSettings()" class="md:hidden fixed bottom-6 right-5 z-40 bg-gradient-to-br from-primary to-primaryDark dark:from-slate-800 dark:to-slate-900 text-white w-14 h-14 rounded-[1.2rem] shadow-floating dark:shadow-none flex items-center justify-center hover:scale-105 active:scale-90 transition-transform border border-white/20">
         <i data-lucide="settings-2" class="w-6 h-6"></i>
     </button>
 
@@ -180,26 +166,35 @@
                 </div>
                 <div>
                     <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 px-1">Tampilan</h4>
-                    <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                    <button onclick="handleDarkToggle()" class="ripple w-full bg-white dark:bg-slate-800 p-4 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between transition group">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-white"><i data-lucide="moon" class="w-4 h-4"></i></div>
-                            <span class="text-xs font-bold text-slate-700 dark:text-white">Mode Gelap</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-yellow-400 group-hover:scale-110 transition-transform">
+                                <i data-lucide="moon" id="panel-theme-icon" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-left">
+                                <span class="block text-xs font-bold text-slate-700 dark:text-white" id="panel-theme-text">Mode Gelap</span>
+                                <span class="block text-[9px] text-slate-400 font-medium">Ubah tema warna aplikasi</span>
+                            </div>
                         </div>
-                        <div class="relative inline-block w-11 h-6 align-middle select-none">
-                            <input type="checkbox" id="toggle-darkmode" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300" onchange="handleDarkToggle()"/>
-                            <label for="toggle-darkmode" class="toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-all duration-300"></label>
-                        </div>
-                    </div>
+                        <i data-lucide="refresh-ccw" class="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:rotate-180 transition-transform duration-500"></i>
+                    </button>
                 </div>
                 <div>
                     <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 px-1">Sistem</h4>
-                    <button onclick="optimizeApp()" class="ripple w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-bold py-4 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 transition flex items-center gap-3 px-4">
-                        <div class="w-8 h-8 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center shrink-0"><i data-lucide="zap" class="w-4 h-4"></i></div>
-                        <div class="text-left">
-                            <span class="block text-xs">Optimasi Aplikasi</span>
-                            <span class="block text-[9px] text-slate-400 font-medium mt-0.5">Bersihkan Cache & Refresh Menu</span>
-                        </div>
-                    </button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="optimizeApp()" class="ripple bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-bold p-3 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 transition flex flex-col items-center justify-center gap-2 text-center">
+                            <div class="w-8 h-8 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 flex items-center justify-center"><i data-lucide="zap" class="w-4 h-4"></i></div>
+                            <div><span class="block text-[11px]">Hapus Cache</span></div>
+                        </button>
+                        <button onclick="refreshApp()" class="ripple bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-bold p-3 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 transition flex flex-col items-center justify-center gap-2 text-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center"><i data-lucide="rotate-cw" class="w-4 h-4"></i></div>
+                            <div><span class="block text-[11px]">Muat Ulang</span></div>
+                        </button>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 opacity-50">
+                    <span class="text-[10px] font-bold text-slate-500">Sakti App</span>
+                    <span id="app-version-panel" class="text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">v1.0</span>
                 </div>
             </div>
         </div>
@@ -223,64 +218,77 @@
         </div>
     </div>
 
+    <div id="install-prompt-container" class="hidden"></div>
+    <div id="install-sheet-overlay" class="fixed inset-0 z-[90] flex items-end justify-center hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="install-backdrop" onclick="closeModals()"></div>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md mx-auto rounded-t-[1.5rem] p-5 shadow-2xl relative z-10 transform translate-y-full transition-transform duration-300" id="install-sheet">
+            <div class="w-10 h-1.5 bg-slate-200 dark:bg-slate-600 rounded-full mx-auto mb-5"></div>
+            <div class="text-center mb-5">
+                <div class="w-14 h-14 bg-orange-50 dark:bg-slate-700 rounded-xl flex items-center justify-center mx-auto mb-3 border border-orange-100 dark:border-slate-600 shadow-soft p-2">
+                    <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-full h-full object-contain">
+                </div>
+                <h3 class="text-lg font-black text-slate-800 dark:text-white mb-1.5">Pasang Aplikasi</h3>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed px-2 font-medium">Install Sakti App ke HP Anda untuk akses lebih cepat.</p>
+            </div>
+            <div class="space-y-2.5">
+                <button id="btn-install-now" class="ripple w-full bg-primary hover:bg-primaryDark text-white text-sm font-bold py-3.5 rounded-xl shadow-glow active:scale-95 transition flex justify-center items-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i><span>Pasang Sekarang</span>
+                </button>
+                <button onclick="closeModals()" class="w-full bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold py-3.5 rounded-xl transition text-[10px]">Nanti Saja</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzzwvdqhcmsSub9Jpd75Kg-dwmCJ4OSL_GM3UT9MHNvSIx3d7rA7eV9HTq3vUYfp-0/exec";
         
-        // --- 0. HISTORY API (TOMBOL BACK FISIK HP) ---
-        window.addEventListener('popstate', (e) => {
-            closeAllModalsUI(); 
-        });
-
-        function pushModalState(modalId) {
-            window.history.pushState({ modal: modalId }, "");
-        }
-
+        // --- HISTORY API ---
+        window.addEventListener('popstate', (e) => { closeAllModalsUI(); });
+        function pushModalState(modalId) { window.history.pushState({ modal: modalId }, ""); }
         function closeAllModalsUI() {
-            const modals = [
-                { m: 'settings-modal', c: 'settings-content', bg: 'settings-bg' },
-                { m: 'login-modal', c: 'login-content', bg: 'login-bg' }
-            ];
+            const modals = [ { m: 'settings-modal', c: 'settings-content', bg: 'settings-bg' }, { m: 'login-modal', c: 'login-content', bg: 'login-bg' } ];
             modals.forEach(item => {
-                const elContent = document.getElementById(item.c);
-                const elModal = document.getElementById(item.m);
-                const elBg = document.getElementById(item.bg);
-                if(elContent) {
-                    elContent.classList.remove('scale-100', 'opacity-100');
-                    elContent.classList.add('scale-95', 'opacity-0');
-                    if(elBg) elBg.classList.add('opacity-0');
-                }
+                const elContent = document.getElementById(item.c); const elModal = document.getElementById(item.m); const elBg = document.getElementById(item.bg);
+                if(elContent) { elContent.classList.remove('scale-100', 'opacity-100'); elContent.classList.add('scale-95', 'opacity-0'); if(elBg) elBg.classList.add('opacity-0'); }
                 setTimeout(() => { if(elModal) elModal.classList.add('hidden'); }, 200);
             });
         }
+        function closeModals() { window.history.back(); }
 
-        function closeModals() {
-            window.history.back();
-        }
-
-        // --- 1. THEME & HEADER SOLID ---
+        // --- THEME ---
         let isDarkMode = localStorage.getItem('sakti_theme') === 'dark' || (!('sakti_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
         function applyThemeUI() {
             const html = document.documentElement;
             if (isDarkMode) html.classList.add('dark'); else html.classList.remove('dark');
-            
-            const toggleDark = document.getElementById('toggle-darkmode');
-            if(toggleDark) toggleDark.checked = isDarkMode;
-            
-            updateGreetingText();
-            updateMetaTheme();
+            updateGreetingText(); updateMetaTheme(); updatePanelThemeButton();
         }
 
         function updateMetaTheme() {
             const metaTheme = document.getElementById('meta-theme-color');
-            if(metaTheme) {
-                // Tema Solid menyatu dengan Header: Oranye (#FF9000) dan Biru Dongker (#0f172a)
-                metaTheme.setAttribute("content", isDarkMode ? "#0f172a" : "#FF9000");
+            if(metaTheme) metaTheme.setAttribute("content", isDarkMode ? "#0f172a" : "#FF9000");
+        }
+
+        function updatePanelThemeButton() {
+            const icon = document.getElementById('panel-theme-icon');
+            const text = document.getElementById('panel-theme-text');
+            if(icon && text) {
+                if (isDarkMode) { icon.setAttribute('data-lucide', 'sun'); text.innerText = 'Mode Terang'; } 
+                else { icon.setAttribute('data-lucide', 'moon'); text.innerText = 'Mode Gelap'; }
+                lucide.createIcons();
             }
         }
 
+        function handleDarkToggle() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('sakti_theme', isDarkMode ? 'dark' : 'light');
+            applyThemeUI();
+        }
+
+        // --- DYNAMIC GREETING WITH ROLE ---
         function updateGreetingText() {
             const greeting = document.getElementById('greeting-text');
+            const desc = document.getElementById('greeting-desc');
             const hour = new Date().getHours();
             let greetText = "Selamat Datang,";
 
@@ -293,34 +301,28 @@
             if(userData) {
                 const user = JSON.parse(userData);
                 greetText += ` ${user.nama.split(' ')[0]}!`;
+                // Menampilkan jabatan jika login
+                if (desc) desc.innerText = user.jabatan || 'Guru SD Negeri 3 Krisak';
             } else {
                 greetText += ` Guru!`;
+                // Teks standar jika belum login
+                if (desc) desc.innerText = 'Pilih aplikasi untuk memulai aktivitas.';
             }
 
             if(greeting) greeting.innerText = greetText;
         }
 
-        applyThemeUI();
-
-        function handleDarkToggle() {
-            isDarkMode = document.getElementById('toggle-darkmode').checked;
-            localStorage.setItem('sakti_theme', isDarkMode ? 'dark' : 'light');
-            applyThemeUI();
-        }
-
-        // --- 2. CONTROL PANEL & LOGIN ---
+        // --- CONTROL PANEL & LOGIN ---
         function renderAuthSection() {
             const container = document.getElementById('settings-auth-container');
             const userData = localStorage.getItem('sakti_user');
-            
             if(userData) {
                 const user = JSON.parse(userData);
-                const initial = user.nama.charAt(0).toUpperCase();
                 container.innerHTML = `
                     <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-[1rem] p-4 text-white relative overflow-hidden shadow-soft mb-2.5">
                         <div class="absolute right-[-20px] top-[-20px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         <div class="flex items-center gap-3.5 relative z-10">
-                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl font-black border border-white/30 shrink-0 shadow-inner">${initial}</div>
+                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl font-black border border-white/30 shrink-0 shadow-inner">${user.nama.charAt(0).toUpperCase()}</div>
                             <div>
                                 <h3 class="font-bold text-sm leading-tight mb-0.5 line-clamp-1 drop-shadow-sm">${user.nama}</h3>
                                 <div class="inline-block px-2 py-0.5 bg-white/20 rounded text-[8px] font-bold uppercase tracking-wider">${user.jabatan || 'Guru'}</div>
@@ -336,7 +338,7 @@
                     <div class="bg-slate-100 dark:bg-slate-800 rounded-[1rem] p-4 text-center border border-slate-200 dark:border-slate-700 mb-2.5">
                         <div class="w-10 h-10 bg-white dark:bg-slate-700 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm"><i data-lucide="user-x" class="w-5 h-5"></i></div>
                         <p class="text-[11px] font-bold text-slate-700 dark:text-white mb-0.5">Anda Belum Login</p>
-                        <p class="text-[9px] text-slate-500 dark:text-slate-400 px-2">Masuk untuk menyimpan riwayat.</p>
+                        <p class="text-[9px] text-slate-500 dark:text-slate-400 px-2">Masuk untuk melihat profil & histori.</p>
                     </div>
                     <button onclick="openLogin()" class="w-full bg-slate-800 dark:bg-primary text-white font-bold py-3.5 rounded-xl shadow-sm transition hover:bg-slate-900 flex items-center justify-center gap-2 text-xs">
                         <i data-lucide="log-in" class="w-4 h-4"></i> Login Guru
@@ -347,82 +349,49 @@
         }
 
         function openSettings() {
-            pushModalState('settings-modal');
-            renderAuthSection(); 
-            const modal = document.getElementById('settings-modal');
-            const bg = document.getElementById('settings-bg');
-            const content = document.getElementById('settings-content');
-            
+            pushModalState('settings-modal'); renderAuthSection(); 
+            const modal = document.getElementById('settings-modal'); const bg = document.getElementById('settings-bg'); const content = document.getElementById('settings-content');
             modal.classList.remove('hidden');
-            setTimeout(() => {
-                bg.classList.remove('opacity-0');
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
+            setTimeout(() => { bg.classList.remove('opacity-0'); content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
         }
 
         function openLogin() {
             window.history.replaceState({ modal: 'login-modal' }, "");
-            const modalSet = document.getElementById('settings-modal');
-            const contentSet = document.getElementById('settings-content');
-            contentSet.classList.remove('scale-100', 'opacity-100');
-            contentSet.classList.add('scale-95', 'opacity-0');
-            
+            const modalSet = document.getElementById('settings-modal'); const contentSet = document.getElementById('settings-content');
+            contentSet.classList.remove('scale-100', 'opacity-100'); contentSet.classList.add('scale-95', 'opacity-0');
             setTimeout(() => {
                 modalSet.classList.add('hidden');
-                const modal = document.getElementById('login-modal');
-                const bg = document.getElementById('login-bg');
-                const content = document.getElementById('login-content');
+                const modal = document.getElementById('login-modal'); const bg = document.getElementById('login-bg'); const content = document.getElementById('login-content');
                 modal.classList.remove('hidden');
-                setTimeout(() => {
-                    bg.classList.remove('opacity-0');
-                    content.classList.remove('scale-95', 'opacity-0');
-                    content.classList.add('scale-100', 'opacity-100');
-                }, 10);
+                setTimeout(() => { bg.classList.remove('opacity-0'); content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
             }, 200);
         }
 
         function closeLogin() {
             window.history.replaceState({ modal: 'settings-modal' }, "");
-            const modalLogin = document.getElementById('login-modal');
-            const contentLogin = document.getElementById('login-content');
-            contentLogin.classList.remove('scale-100', 'opacity-100');
-            contentLogin.classList.add('scale-95', 'opacity-0');
-            
+            const modalLogin = document.getElementById('login-modal'); const contentLogin = document.getElementById('login-content');
+            contentLogin.classList.remove('scale-100', 'opacity-100'); contentLogin.classList.add('scale-95', 'opacity-0');
             setTimeout(() => {
                 modalLogin.classList.add('hidden');
-                const modalSet = document.getElementById('settings-modal');
-                const contentSet = document.getElementById('settings-content');
+                const modalSet = document.getElementById('settings-modal'); const contentSet = document.getElementById('settings-content');
                 modalSet.classList.remove('hidden');
-                setTimeout(() => {
-                    contentSet.classList.remove('scale-95', 'opacity-0');
-                    contentSet.classList.add('scale-100', 'opacity-100');
-                }, 10);
+                setTimeout(() => { contentSet.classList.remove('scale-95', 'opacity-0'); contentSet.classList.add('scale-100', 'opacity-100'); }, 10);
             }, 200);
         }
 
         async function submitLogin(e) {
             e.preventDefault();
-            const pin = document.getElementById('login-pin').value;
-            const btn = document.getElementById('btn-submit-login');
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Memeriksa...';
-            lucide.createIcons();
-            btn.disabled = true;
+            const pin = document.getElementById('login-pin').value; const btn = document.getElementById('btn-submit-login');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Memeriksa...'; lucide.createIcons(); btn.disabled = true;
 
             try {
-                const res = await fetch(`${API_URL}?action=user_login&pin=${pin}`);
-                const data = await res.json();
+                const res = await fetch(`${API_URL}?action=user_login&pin=${pin}`); const data = await res.json();
                 if (data.status === 'success') {
                     localStorage.setItem('sakti_user', JSON.stringify(data.user));
                     Swal.fire({ icon: 'success', title: 'Berhasil Masuk', text: `Selamat datang!`, timer: 1000, showConfirmButton: false });
-                    updateGreetingText();
-                    window.history.back(); 
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: data.message, confirmButtonColor: '#FF9000' });
-                }
-            } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Koneksi Terputus', text: 'Coba lagi nanti.', confirmButtonColor: '#FF9000' });
-            }
+                    updateGreetingText(); window.history.back(); 
+                } else { Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: data.message, confirmButtonColor: '#FF9000' }); }
+            } catch (err) { Swal.fire({ icon: 'error', title: 'Koneksi Terputus', text: 'Coba lagi nanti.', confirmButtonColor: '#FF9000' }); }
             btn.innerHTML = 'Masuk'; btn.disabled = false; document.getElementById('login-pin').value = ''; lucide.createIcons();
         }
 
@@ -432,88 +401,93 @@
                 showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Ya, Keluar', cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    localStorage.removeItem('sakti_user');
-                    updateGreetingText();
-                    renderAuthSection();
+                    localStorage.removeItem('sakti_user'); updateGreetingText(); renderAuthSection();
                     Swal.fire({ icon: 'success', title: 'Berhasil Keluar', showConfirmButton: false, timer: 1000 });
                 }
             });
         }
 
+        function refreshApp() {
+            window.history.back();
+            setTimeout(() => window.location.reload(), 300);
+        }
+
         function optimizeApp() {
             window.history.back(); 
             Swal.fire({
-                title: 'Optimasi Aplikasi?', text: "Membersihkan file sampah dan mengunduh ulang data terbaru.", icon: 'question',
+                title: 'Optimasi Aplikasi?', text: "Membersihkan cache untuk memuat pembaruan menu.", icon: 'question',
                 showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#cbd5e1', confirmButtonText: 'Ya, Bersihkan', cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
                     if('caches' in window) { caches.keys().then(names => { names.forEach(name => caches.delete(name)); }); }
-                    Swal.fire({ icon: 'success', title: 'Optimasi Selesai', text: 'Memuat ulang aplikasi...', showConfirmButton: false, timer: 1000 });
+                    localStorage.removeItem('sakti_data_cache'); 
+                    Swal.fire({ icon: 'success', title: 'Cache Dibersihkan', text: 'Memuat ulang aplikasi...', showConfirmButton: false, timer: 1000 });
                     setTimeout(() => window.location.reload(true), 1000);
                 }
             });
         }
 
-        // --- 3. FETCH & RENDER DATA (WIDGET MENU) ---
+        // --- INSTANT LOAD (OFFLINE FIRST) ---
         const colorPalette = {
-            blue: { gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30' },
-            red: { gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30' },
-            green: { gradient: 'from-emerald-400 to-teal-500', shadow: 'shadow-emerald-500/30' },
-            orange: { gradient: 'from-orange-400 to-orange-600', shadow: 'shadow-orange-500/30' },
-            purple: { gradient: 'from-purple-500 to-fuchsia-600', shadow: 'shadow-purple-500/30' },
-            teal: { gradient: 'from-teal-400 to-cyan-500', shadow: 'shadow-teal-500/30' },
-            yellow: { gradient: 'from-amber-400 to-orange-500', shadow: 'shadow-amber-500/30' }
+            blue: { gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30', infoBox: 'bg-blue-600 border-blue-500' },
+            red: { gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30', infoBox: 'bg-red-600 border-red-500' },
+            green: { gradient: 'from-emerald-400 to-teal-500', shadow: 'shadow-emerald-500/30', infoBox: 'bg-emerald-600 border-emerald-500' },
+            orange: { gradient: 'from-orange-400 to-orange-600', shadow: 'shadow-orange-500/30', infoBox: 'bg-orange-600 border-orange-500' },
+            purple: { gradient: 'from-purple-500 to-fuchsia-600', shadow: 'shadow-purple-500/30', infoBox: 'bg-purple-600 border-purple-500' },
+            teal: { gradient: 'from-teal-400 to-cyan-500', shadow: 'shadow-teal-500/30', infoBox: 'bg-teal-600 border-teal-500' },
+            yellow: { gradient: 'from-amber-400 to-orange-500', shadow: 'shadow-amber-500/30', infoBox: 'bg-amber-500 border-amber-400' }
         };
 
-        window.addEventListener('load', async () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(console.error);
+            applyThemeUI();
+
+            const cachedData = localStorage.getItem('sakti_data_cache');
+            if (cachedData) { renderData(JSON.parse(cachedData)); } 
+            else {
+                document.getElementById('app-grid').innerHTML = `<div class="col-span-full flex justify-center py-10"><i data-lucide="loader-2" class="w-6 h-6 animate-spin text-slate-400"></i></div>`;
+                lucide.createIcons();
+            }
+
             try {
+                if (cachedData) document.getElementById('sync-indicator').classList.remove('hidden'); 
                 const response = await fetch(`${API_URL}?action=public_load`);
                 const data = await response.json();
                 if (data.status === "success") {
-                    renderMenu(data.raw_menu);
-                    if(data.info.versi) document.getElementById('app-version').innerText = data.info.versi;
-                    
-                    // RENDER BANNER INFO DI DALAM HERO WIDGET
-                    if (data.info.status === 'ON' && data.info.pesan) {
-                        const banner = document.getElementById('hero-ota-banner');
-                        document.getElementById('hero-ota-text').innerText = data.info.pesan;
-                        banner.classList.remove('hidden');
-                    }
+                    localStorage.setItem('sakti_data_cache', JSON.stringify(data));
+                    renderData(data); 
                 }
-            } catch (err) {
-                console.log(err);
-            } finally {
-                // Loading Sat-Set (100ms)
-                setTimeout(() => {
-                    document.getElementById('loader').classList.add('opacity-0', 'pointer-events-none');
-                    document.getElementById('main-content').classList.remove('hidden');
-                    lucide.createIcons();
-                }, 100); 
-            }
+            } catch (err) { console.log("Offline:", err); } 
+            finally { document.getElementById('sync-indicator').classList.add('hidden'); }
         });
 
-        // Fungsi Menutup Banner Info di Hero Widget
-        function closeHeroBanner() {
+        function renderData(data) {
+            if(data.info.versi) {
+                const vPanel = document.getElementById('app-version-panel');
+                const vHero = document.getElementById('app-version');
+                if(vPanel) vPanel.innerText = data.info.versi;
+                if(vHero) vHero.innerText = data.info.versi;
+            }
+            
             const banner = document.getElementById('hero-ota-banner');
-            banner.classList.add('opacity-0', '-translate-y-4', 'scale-95');
-            setTimeout(() => banner.classList.add('hidden'), 400);
-        }
+            if (data.info.status === 'ON' && data.info.pesan) {
+                const box = document.getElementById('hero-ota-box');
+                const selColor = colorPalette[data.info.warna] ? colorPalette[data.info.warna].infoBox : 'bg-blue-600 border-blue-500';
+                box.className = `rounded-[1.2rem] p-4 flex items-start gap-3.5 relative shadow-floating transform -translate-y-2 border ${selColor}`;
+                document.getElementById('hero-ota-text').innerText = data.info.pesan;
+                banner.classList.remove('hidden');
+            } else { banner.classList.add('hidden'); }
 
-        function renderMenu(rawMenu) {
             const grid = document.getElementById('app-grid');
-            grid.innerHTML = ''; 
-            let delayCounter = 50;
+            grid.innerHTML = ''; let delayCounter = 0;
 
-            rawMenu.forEach((row, index) => {
+            data.raw_menu.forEach((row, index) => {
                 if (index === 0 || !row[0]) return; 
-                
                 const target = (row[5] || "all").toLowerCase();
                 const displayClass = target === "mobile" ? "block md:hidden" : target === "desktop" ? "hidden md:block" : "block";
                 const isWide = (row[7] || "").toLowerCase() === "wide";
                 const spanClass = isWide ? "col-span-2 md:col-span-2 lg:col-span-3" : "col-span-1";
                 const badgeHTML = row[8] ? `<span class="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-[1rem] shadow-sm uppercase z-20">${row[8]}</span>` : "";
-                
                 const colors = colorPalette[row[4]] || colorPalette['blue'];
 
                 if (isWide) {
@@ -551,10 +525,21 @@
                         </a>
                     `);
                 }
-                delayCounter += 50;
+                delayCounter += 20; 
             });
             lucide.createIcons();
         }
+
+        function closeHeroBanner() {
+            const banner = document.getElementById('hero-ota-banner');
+            banner.classList.add('opacity-0', '-translate-y-4', 'scale-95');
+            setTimeout(() => banner.classList.add('hidden'), 400);
+        }
+
+        // --- PWA INSTALL PROMPT ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+        function hideInstallSheet() { closeModals(); }
     </script>
 </body>
 </html>
