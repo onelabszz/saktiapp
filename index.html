@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#FF9000">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#FF9000" id="meta-theme-color">
     <meta name="description" content="Portal Aplikasi SD Negeri 3 Krisak">
     
     <link rel="manifest" href="manifest.json">
@@ -16,226 +16,453 @@
             darkMode: 'class', 
             theme: {
                 extend: {
-                    colors: { primary: '#FF9000', primaryDark: '#e65100', surface: '#f8fafc' },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                    colors: { primary: '#FF9000', primaryDark: '#e65100' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(255, 144, 0, 0.4)',
+                        'card': '0 8px 25px -8px rgba(0,0,0,0.08)',
+                        'soft': '0 4px 15px -2px rgba(0,0,0,0.04)',
+                    }
                 }
             }
         }
     </script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s ease; }
+        /* Optimasi Native Feel: Mematikan efek goyang bawaan browser */
+        html, body {
+            overscroll-behavior-y: none; 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            transition: background-color 0.2s ease; 
+            user-select: none;
+            -webkit-user-select: none;
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; transform: translateY(10px); }
-        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
-        .marquee-container { overflow: hidden; white-space: nowrap; width: 100%; }
-        .marquee-text { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-        @media all and (display-mode: standalone) { #install-prompt-container, #install-sheet-overlay { display: none !important; } }
         
-        /* Kustomisasi SweetAlert */
-        .swal2-popup { border-radius: 1.5rem !important; font-family: 'Inter', sans-serif !important; }
-        .dark .swal2-popup { background-color: #1e293b !important; color: #f8fafc !important; }
-        .dark .swal2-title, .dark .swal2-html-container { color: #f8fafc !important; }
+        .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Efek Ripple Widget Android */
+        .ripple { position: relative; overflow: hidden; transform: translate3d(0, 0, 0); }
+        .ripple:after {
+            content: ""; display: block; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat; background-position: 50%; transform: scale(10, 10); opacity: 0; transition: transform .4s, opacity 1s;
+        }
+        .ripple:active:after { transform: scale(0, 0); opacity: 0.2; transition: 0s; }
+        
+        /* Kustomisasi SweetAlert HP */
+        .swal2-popup { border-radius: 1.5rem !important; font-family: 'Inter', sans-serif !important; width: 90% !important; max-width: 380px !important; }
+        .dark .swal2-popup { background-color: #1e293b !important; color: #fdfbf7 !important; }
+        .dark .swal2-title, .dark .swal2-html-container { color: #fdfbf7 !important; }
+        
+        /* Toggle Switch Custom */
+        .toggle-checkbox:checked { right: 0; border-color: #FF9000; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #FF9000; }
+        .toggle-checkbox { right: 4px; z-index: 1; border-color: transparent; top: 4px; }
+        .toggle-label { width: 44px; height: 24px; background-color: #cbd5e1; border-radius: 9999px; }
+        .dark .toggle-label { background-color: #475569; }
+
+        @media all and (display-mode: standalone) { #install-prompt-container, #install-sheet-overlay { display: none !important; } }
     </style>
 </head>
-<body class="text-slate-800 dark:text-slate-100 min-h-screen relative overflow-x-hidden md:flex md:justify-center bg-slate-50 dark:bg-slate-900 no-scrollbar pb-24 md:pb-0">
+<body class="text-slate-800 dark:text-slate-100 min-h-screen relative overflow-x-hidden md:flex md:justify-center bg-[#f4f6f8] dark:bg-slate-900 no-scrollbar pb-24 md:pb-0">
 
-    <div id="loader" class="fixed inset-0 z-[100] bg-white dark:bg-slate-900 flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="relative w-16 h-16 flex items-center justify-center mb-4">
-            <div class="absolute inset-0 border-4 border-orange-100 dark:border-slate-800 border-t-primary rounded-full animate-spin"></div>
-            <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-8 h-8 object-contain animate-pulse">
+    <div class="fixed top-[-50px] left-[-50px] w-64 h-64 md:w-80 md:h-80 bg-orange-200/40 dark:bg-orange-900/10 rounded-full blur-3xl opacity-60 z-0 pointer-events-none"></div>
+    <div class="fixed bottom-[-50px] right-[-50px] w-48 h-48 md:w-64 md:h-64 bg-yellow-200/40 dark:bg-yellow-900/10 rounded-full blur-3xl opacity-60 z-0 pointer-events-none"></div>
+
+    <div id="loader" class="fixed inset-0 z-[100] bg-primary dark:bg-slate-900 flex flex-col items-center justify-center transition-opacity duration-200">
+        <div class="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mb-4 p-2 bg-white dark:bg-slate-800 rounded-2xl md:rounded-[1.5rem] shadow-card">
+            <div class="absolute inset-0 border-[3px] border-slate-100 dark:border-slate-700 border-t-primary rounded-2xl md:rounded-[1.5rem] animate-spin"></div>
+            <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-10 h-10 md:w-12 md:h-12 object-contain animate-pulse">
         </div>
-        <p class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Menyiapkan Aplikasi...</p>
     </div>
 
-    <header class="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-5 py-3 flex justify-between items-center shadow-sm h-[65px]">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full border border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm shrink-0 bg-orange-50 dark:bg-slate-800 p-1">
-                <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-full h-full object-contain">
+    <header class="md:hidden sticky top-0 left-0 right-0 z-50 px-5 py-4 flex justify-between items-center bg-primary dark:bg-slate-900 transition-colors duration-300 shadow-md">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-[0.8rem] bg-white/20 backdrop-blur-md p-1.5 flex items-center justify-center shrink-0 border border-white/30 shadow-sm">
+                <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-full h-full object-contain drop-shadow-md">
             </div>
             <div>
-                <h1 class="font-bold text-slate-800 dark:text-white text-lg leading-none tracking-tight">Sakti App</h1>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5">SD Negeri 3 Krisak</p>
+                <h1 class="font-black text-white text-xl md:text-2xl leading-none tracking-tight drop-shadow-sm">Sakti App</h1>
+                <p class="text-[10px] text-white/90 font-extrabold pt-1 tracking-widest uppercase">SD Negeri 3 Krisak</p>
             </div>
         </div>
-        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-            <i data-lucide="moon" id="theme-icon-mobile" class="w-5 h-5"></i>
-        </button>
     </header>
 
-    <main id="main-content" class="relative z-10 max-w-5xl mx-auto w-full min-h-screen px-5 pt-24 pb-10 md:py-12 flex flex-col md:flex-row gap-8 lg:gap-16 hidden">
+    <main id="main-content" class="relative z-10 max-w-5xl mx-auto w-full min-h-screen px-4 md:px-6 pt-5 pb-8 md:py-12 flex flex-col md:flex-row gap-6 md:gap-16 hidden">
         
         <aside class="hidden md:flex md:w-5/12 lg:w-4/12 flex-col md:sticky md:top-12 h-fit text-left fade-in">
-            <div class="w-24 h-24 rounded-[1.5rem] bg-white dark:bg-slate-800 p-4 shadow-sm border border-orange-100 dark:border-slate-700 flex items-center justify-center mb-6 relative group">
+            <div class="w-24 h-24 rounded-[1.5rem] bg-white dark:bg-slate-800 p-4 shadow-soft border border-orange-100 dark:border-slate-700 flex items-center justify-center mb-6 relative group">
                 <div class="absolute inset-0 bg-orange-50 dark:bg-slate-700 rounded-[1.5rem] rotate-6 group-hover:rotate-12 transition -z-10"></div>
                 <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" alt="Logo" class="w-full h-full object-contain">
             </div>
             <h1 class="text-3xl font-black text-slate-800 dark:text-white leading-none mb-2 tracking-tight">Sakti App</h1>
             <p class="text-slate-400 dark:text-slate-500 text-base font-bold tracking-wide mb-4">SD Negeri 3 Krisak</p>
-            <div class="inline-block px-3 py-1 bg-orange-50 dark:bg-orange-900/30 rounded-full border border-orange-100 dark:border-orange-800/50 mb-6">
+            <div class="inline-block px-3 py-1 bg-orange-50 dark:bg-orange-900/30 rounded-full border border-orange-200 dark:border-orange-800/50 mb-6 w-max">
                 <p class="text-[10px] font-extrabold text-primary uppercase tracking-wider">Berakhlak Cerdas Berprestasi</p>
             </div>
-            
-            <div class="grid grid-cols-2 gap-3 mb-6">
-                <button onclick="openProfile()" class="w-full bg-slate-800 dark:bg-primary hover:bg-slate-900 dark:hover:bg-primaryDark text-white font-bold py-3.5 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
-                    <i data-lucide="user-circle" class="w-5 h-5"></i> Profil
-                </button>
-                <button onclick="toggleDarkMode()" class="w-full bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-yellow-400 font-bold py-3.5 rounded-xl transition flex justify-center items-center gap-2">
-                    <i data-lucide="moon" id="theme-icon-desktop" class="w-5 h-5"></i> Tema
-                </button>
-            </div>
+            <button onclick="openSettings()" class="ripple w-full bg-slate-800 dark:bg-primary hover:bg-slate-900 dark:hover:bg-primaryDark text-white font-bold py-3.5 rounded-[1.2rem] shadow-card transition flex justify-center items-center gap-2">
+                <i data-lucide="settings-2" class="w-5 h-5"></i> Control Panel
+            </button>
         </aside>
 
-        <div class="md:w-7/12 lg:w-8/12 flex flex-col gap-5 fade-in delay-100 w-full">
-            <div id="ota-banner" class="hidden rounded-xl p-3 flex items-center gap-3 text-sm font-bold shadow-sm border">
-                <i data-lucide="bell-ring" class="w-5 h-5 shrink-0"></i>
-                <div class="marquee-container w-full text-xs font-medium"><span class="marquee-text" id="ota-text"></span></div>
-            </div>
-
-            <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                <div class="absolute right-[-10px] top-[-10px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                <div class="relative z-10 flex justify-between items-start">
+        <div class="md:w-7/12 lg:w-8/12 flex flex-col gap-4 w-full">
+            
+            <div class="fade-in bg-gradient-to-br from-primary to-primaryDark dark:from-slate-800 dark:to-slate-900 rounded-[1.5rem] md:rounded-[2rem] p-6 text-white shadow-xl shadow-orange-500/30 dark:shadow-none relative overflow-hidden group border border-white/10 md:mt-2 transition-all duration-300">
+                <div class="absolute right-[-20px] top-[-20px] w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div class="relative z-10 flex justify-between items-start mb-2">
                     <div>
-                        <h2 class="text-lg md:text-2xl font-bold leading-tight mb-1">Selamat Datang,</h2>
-                        <p class="text-orange-50 text-xs md:text-sm font-medium">Silakan pilih menu layanan digital di bawah ini.</p>
+                        <div class="flex items-center gap-1.5 mb-2 text-white/90">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span class="text-xs font-bold uppercase tracking-widest">Portal Digital</span>
+                        </div>
+                        <h2 id="greeting-text" class="text-2xl md:text-3xl font-black leading-tight mb-1 drop-shadow-md">Selamat Datang!</h2>
+                        <p class="text-white/90 text-sm md:text-base font-medium">Pilih aplikasi untuk memulai aktivitas.</p>
                     </div>
-                    <span id="app-version" class="text-[10px] font-bold bg-white/20 px-2 py-1 rounded-md backdrop-blur-sm">v1.0</span>
+                    <span id="app-version" class="text-[10px] font-bold bg-white/20 px-2.5 py-1 rounded-lg border border-white/20 shadow-inner">v1.0</span>
+                </div>
+
+                <div id="hero-ota-banner" class="hidden relative z-10 mt-5 pt-5 border-t border-white/20 transition-all duration-500 origin-top">
+                    <div class="bg-white/10 backdrop-blur-md rounded-[1.2rem] p-4 border border-white/20 flex items-start gap-3.5 relative shadow-inner">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                            <i data-lucide="megaphone" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div class="flex-grow pr-6 pt-0.5">
+                            <h4 class="text-[9px] font-black uppercase tracking-widest text-white/70 mb-1">Info Sekolah</h4>
+                            <p class="text-xs md:text-sm font-bold text-white leading-snug drop-shadow-sm" id="hero-ota-text"></p>
+                        </div>
+                        <button onclick="closeHeroBanner()" class="absolute top-3.5 right-3.5 p-1.5 rounded-full text-white/60 hover:bg-white/30 hover:text-white transition active:scale-90">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 px-1 mt-1">
-                <i data-lucide="grid-2x2" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i>
-                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Menu Utama</span>
+            <div class="flex items-center gap-2 px-1 fade-in mt-2">
+                <i data-lucide="layout-grid" class="w-4 h-4 text-primary"></i>
+                <span class="text-[10px] md:text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Menu Layanan</span>
             </div>
 
-            <div id="app-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4"></div>
+            <div id="app-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4"></div>
             
-            <div class="mt-4 md:hidden text-center pb-8 opacity-40">
-                <p class="text-slate-400 text-[10px] font-bold tracking-widest uppercase">
-                    &copy; 2026 SDN 3 Krisak
-                </p>
+            <div class="mt-4 md:hidden text-center opacity-40">
+                <div class="flex justify-center items-center gap-1 mb-1"><i data-lucide="command" class="w-3 h-3"></i></div>
+                <p class="text-slate-400 text-[9px] font-bold tracking-widest uppercase">&copy; 2026 SDN 3 Krisak</p>
             </div>
         </div>
     </main>
 
-    <button onclick="openProfile()" class="md:hidden fixed bottom-6 right-6 z-40 bg-gradient-to-br from-primary to-primaryDark text-white w-14 h-14 rounded-full shadow-lg shadow-orange-500/40 flex items-center justify-center hover:scale-105 active:scale-90 transition-transform border border-white/20 backdrop-blur-sm">
-        <i data-lucide="user" class="w-6 h-6"></i>
+    <button onclick="openSettings()" class="md:hidden fixed bottom-6 right-5 z-40 bg-gradient-to-br from-primary to-primaryDark dark:from-slate-800 dark:to-slate-900 text-white w-14 h-14 rounded-[1.2rem] shadow-glow dark:shadow-none flex items-center justify-center hover:scale-105 active:scale-90 transition-transform border border-white/20">
+        <i data-lucide="settings-2" class="w-6 h-6"></i>
     </button>
 
-    <div id="login-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-5">
-        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModals()"></div>
-        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300 p-8" id="login-content">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-            <div class="w-16 h-16 bg-orange-50 dark:bg-slate-700 text-primary rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-slate-600">
-                <i data-lucide="lock" class="w-7 h-7"></i>
+    <div id="settings-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300" id="settings-bg" onclick="closeModals()"></div>
+        <div class="bg-[#fdfbf7] dark:bg-slate-900 w-full max-w-sm rounded-[1.5rem] shadow-2xl relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-200 flex flex-col max-h-[85vh]" id="settings-content">
+            <div class="bg-white dark:bg-slate-800 px-5 py-4 flex justify-between items-center border-b border-slate-100 dark:border-slate-700 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-orange-50 dark:bg-slate-700 text-primary rounded-lg flex items-center justify-center"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></div>
+                    <h3 class="font-bold text-sm md:text-base text-slate-800 dark:text-white">Control Panel</h3>
+                </div>
+                <button onclick="closeModals()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition bg-slate-50 dark:bg-slate-700 rounded-full p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <h3 class="text-xl font-bold text-center text-slate-800 dark:text-white mb-1">Login Guru</h3>
-            <p class="text-xs text-center text-slate-500 dark:text-slate-400 mb-6">Masukkan PIN GTK Anda untuk melihat profil.</p>
+            <div class="p-5 overflow-y-auto space-y-5">
+                <div>
+                    <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 px-1">Profil & Akun</h4>
+                    <div id="settings-auth-container"></div>
+                </div>
+                <div>
+                    <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 px-1">Tampilan</h4>
+                    <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-white"><i data-lucide="moon" class="w-4 h-4"></i></div>
+                            <span class="text-xs font-bold text-slate-700 dark:text-white">Mode Gelap</span>
+                        </div>
+                        <div class="relative inline-block w-11 h-6 align-middle select-none">
+                            <input type="checkbox" id="toggle-darkmode" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300" onchange="handleDarkToggle()"/>
+                            <label for="toggle-darkmode" class="toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-all duration-300"></label>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 px-1">Sistem</h4>
+                    <button onclick="optimizeApp()" class="ripple w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-bold py-4 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 transition flex items-center gap-3 px-4">
+                        <div class="w-8 h-8 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center shrink-0"><i data-lucide="zap" class="w-4 h-4"></i></div>
+                        <div class="text-left">
+                            <span class="block text-xs">Optimasi Aplikasi</span>
+                            <span class="block text-[9px] text-slate-400 font-medium mt-0.5">Bersihkan Cache & Refresh Menu</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-modal" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300" id="login-bg" onclick="closeLogin()"></div>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[1.5rem] shadow-2xl relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-200 p-6 md:p-8" id="login-content">
+            <button onclick="closeLogin()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-50 dark:bg-slate-700 rounded-full p-1.5 transition"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+            <div class="w-14 h-14 bg-orange-50 dark:bg-slate-700 text-primary rounded-[1rem] shadow-soft flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-slate-600">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-black text-center text-slate-800 dark:text-white mb-1">Login Guru</h3>
+            <p class="text-[10px] text-center text-slate-500 dark:text-slate-400 mb-5 font-medium">Masukkan PIN GTK Anda.</p>
             <form onsubmit="submitLogin(event)">
-                <input type="password" id="login-pin" class="w-full text-center text-3xl tracking-[0.5em] font-bold border-2 border-slate-200 dark:border-slate-600 bg-transparent dark:text-white rounded-xl py-4 mb-5 outline-none focus:border-primary transition" maxlength="6" required placeholder="••••••">
-                <button type="submit" id="btn-submit-login" class="w-full bg-primary text-white font-bold py-4 rounded-xl hover:bg-primaryDark active:scale-95 transition shadow-lg flex justify-center items-center gap-2">
-                    Buka Profil
+                <input type="password" id="login-pin" class="w-full text-center text-2xl tracking-[0.5em] font-black border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl py-3.5 mb-4 outline-none focus:border-primary transition" maxlength="6" required placeholder="••••••">
+                <button type="submit" id="btn-submit-login" class="ripple w-full bg-slate-800 dark:bg-primary text-white text-sm font-bold py-3.5 rounded-xl hover:bg-slate-900 dark:hover:bg-primaryDark active:scale-95 transition shadow-lg flex justify-center items-center gap-2">
+                    Masuk
                 </button>
             </form>
-        </div>
-    </div>
-
-    <div id="profile-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-5">
-        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModals()"></div>
-        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="profile-content">
-            <div class="bg-gradient-to-br from-orange-500 to-orange-600 p-6 pt-8 text-white text-center relative border-b-4 border-orange-700 dark:border-orange-800">
-                <button onclick="closeModals()" class="absolute top-4 right-4 text-white/70 hover:text-white bg-black/10 rounded-full p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
-                <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 backdrop-blur-md border-2 border-white/50 text-3xl font-black tracking-tighter" id="prof-initial">U</div>
-                <h3 class="text-xl font-bold leading-tight" id="prof-nama">Nama Guru</h3>
-                <div class="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full border border-white/30 text-[10px] font-bold uppercase tracking-wider text-orange-50" id="prof-jabatan">Jabatan</div>
-            </div>
-            <div class="p-6 bg-slate-50 dark:bg-slate-800/50">
-                <div class="space-y-4 mb-6">
-                    <div class="bg-white dark:bg-slate-700 p-3 rounded-xl border border-slate-100 dark:border-slate-600 shadow-sm">
-                        <p class="text-[10px] text-slate-400 dark:text-slate-400 font-bold uppercase mb-0.5">NIP / NI PPPK</p>
-                        <p class="text-sm font-bold text-slate-700 dark:text-white" id="prof-nip">-</p>
-                    </div>
-                    <div class="bg-white dark:bg-slate-700 p-3 rounded-xl border border-slate-100 dark:border-slate-600 shadow-sm">
-                        <p class="text-[10px] text-slate-400 dark:text-slate-400 font-bold uppercase mb-0.5">Unit Kerja</p>
-                        <p class="text-sm font-bold text-slate-700 dark:text-white" id="prof-instansi">-</p>
-                    </div>
-                </div>
-                <button onclick="confirmLogout()" class="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold py-3.5 rounded-xl transition flex justify-center items-center gap-2 border border-red-100 dark:border-red-800/30">
-                    <i data-lucide="log-out" class="w-4 h-4"></i> Keluar / Ganti Akun
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="install-prompt-container" class="hidden"></div>
-    <div id="install-sheet-overlay" class="fixed inset-0 z-[90] flex items-end justify-center hidden">
-        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity opacity-0" id="install-backdrop" onclick="hideInstallSheet()"></div>
-        <div class="bg-white dark:bg-slate-800 w-full max-w-md mx-auto rounded-t-3xl p-6 shadow-2xl relative z-10 transform translate-y-full transition-transform duration-300" id="install-sheet">
-            <div class="w-12 h-1.5 bg-slate-200 dark:bg-slate-600 rounded-full mx-auto mb-6"></div>
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-orange-50 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-slate-600 p-2">
-                    <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-full h-full object-contain">
-                </div>
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Pasang Aplikasi</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed px-4">
-                    Install Sakti App ke HP Anda agar lebih cepat diakses layar penuh tanpa repot mengetik link.
-                </p>
-            </div>
-            <div class="space-y-3">
-                <button id="btn-install-now" class="w-full bg-primary hover:bg-primaryDark text-white font-bold py-3.5 rounded-xl shadow-lg shadow-orange-200/50 dark:shadow-none active:scale-95 transition flex justify-center items-center gap-2">
-                    <i data-lucide="download" class="w-5 h-5"></i><span>Pasang Sekarang</span>
-                </button>
-                <button onclick="hideInstallSheet()" class="w-full bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-semibold py-3.5 rounded-xl transition text-xs">Nanti Saja</button>
-            </div>
         </div>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzzwvdqhcmsSub9Jpd75Kg-dwmCJ4OSL_GM3UT9MHNvSIx3d7rA7eV9HTq3vUYfp-0/exec";
         
-        // --- 1. DARK MODE LOGIC ---
-        function applyTheme(isDark) {
+        // --- 0. HISTORY API (TOMBOL BACK FISIK HP) ---
+        window.addEventListener('popstate', (e) => {
+            closeAllModalsUI(); 
+        });
+
+        function pushModalState(modalId) {
+            window.history.pushState({ modal: modalId }, "");
+        }
+
+        function closeAllModalsUI() {
+            const modals = [
+                { m: 'settings-modal', c: 'settings-content', bg: 'settings-bg' },
+                { m: 'login-modal', c: 'login-content', bg: 'login-bg' }
+            ];
+            modals.forEach(item => {
+                const elContent = document.getElementById(item.c);
+                const elModal = document.getElementById(item.m);
+                const elBg = document.getElementById(item.bg);
+                if(elContent) {
+                    elContent.classList.remove('scale-100', 'opacity-100');
+                    elContent.classList.add('scale-95', 'opacity-0');
+                    if(elBg) elBg.classList.add('opacity-0');
+                }
+                setTimeout(() => { if(elModal) elModal.classList.add('hidden'); }, 200);
+            });
+        }
+
+        function closeModals() {
+            window.history.back();
+        }
+
+        // --- 1. THEME & HEADER SOLID ---
+        let isDarkMode = localStorage.getItem('sakti_theme') === 'dark' || (!('sakti_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        function applyThemeUI() {
             const html = document.documentElement;
-            const iconMobile = document.getElementById('theme-icon-mobile');
-            const iconDesktop = document.getElementById('theme-icon-desktop');
+            if (isDarkMode) html.classList.add('dark'); else html.classList.remove('dark');
             
-            if (isDark) {
-                html.classList.add('dark');
-                if(iconMobile) iconMobile.setAttribute('data-lucide', 'sun');
-                if(iconDesktop) iconDesktop.setAttribute('data-lucide', 'sun');
+            const toggleDark = document.getElementById('toggle-darkmode');
+            if(toggleDark) toggleDark.checked = isDarkMode;
+            
+            updateGreetingText();
+            updateMetaTheme();
+        }
+
+        function updateMetaTheme() {
+            const metaTheme = document.getElementById('meta-theme-color');
+            if(metaTheme) {
+                // Tema Solid menyatu dengan Header: Oranye (#FF9000) dan Biru Dongker (#0f172a)
+                metaTheme.setAttribute("content", isDarkMode ? "#0f172a" : "#FF9000");
+            }
+        }
+
+        function updateGreetingText() {
+            const greeting = document.getElementById('greeting-text');
+            const hour = new Date().getHours();
+            let greetText = "Selamat Datang,";
+
+            if (hour >= 5 && hour < 11) greetText = "Selamat Pagi,"; 
+            else if (hour >= 11 && hour < 15) greetText = "Selamat Siang,"; 
+            else if (hour >= 15 && hour < 18) greetText = "Selamat Sore,"; 
+            else greetText = "Selamat Malam,"; 
+            
+            const userData = localStorage.getItem('sakti_user');
+            if(userData) {
+                const user = JSON.parse(userData);
+                greetText += ` ${user.nama.split(' ')[0]}!`;
             } else {
-                html.classList.remove('dark');
-                if(iconMobile) iconMobile.setAttribute('data-lucide', 'moon');
-                if(iconDesktop) iconDesktop.setAttribute('data-lucide', 'moon');
+                greetText += ` Guru!`;
+            }
+
+            if(greeting) greeting.innerText = greetText;
+        }
+
+        applyThemeUI();
+
+        function handleDarkToggle() {
+            isDarkMode = document.getElementById('toggle-darkmode').checked;
+            localStorage.setItem('sakti_theme', isDarkMode ? 'dark' : 'light');
+            applyThemeUI();
+        }
+
+        // --- 2. CONTROL PANEL & LOGIN ---
+        function renderAuthSection() {
+            const container = document.getElementById('settings-auth-container');
+            const userData = localStorage.getItem('sakti_user');
+            
+            if(userData) {
+                const user = JSON.parse(userData);
+                const initial = user.nama.charAt(0).toUpperCase();
+                container.innerHTML = `
+                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-[1rem] p-4 text-white relative overflow-hidden shadow-soft mb-2.5">
+                        <div class="absolute right-[-20px] top-[-20px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                        <div class="flex items-center gap-3.5 relative z-10">
+                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl font-black border border-white/30 shrink-0 shadow-inner">${initial}</div>
+                            <div>
+                                <h3 class="font-bold text-sm leading-tight mb-0.5 line-clamp-1 drop-shadow-sm">${user.nama}</h3>
+                                <div class="inline-block px-2 py-0.5 bg-white/20 rounded text-[8px] font-bold uppercase tracking-wider">${user.jabatan || 'Guru'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="confirmLogout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-3.5 rounded-xl border border-red-100 dark:border-red-800/30 transition hover:bg-red-100 flex items-center justify-center gap-2 text-xs">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Keluar Akun
+                    </button>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="bg-slate-100 dark:bg-slate-800 rounded-[1rem] p-4 text-center border border-slate-200 dark:border-slate-700 mb-2.5">
+                        <div class="w-10 h-10 bg-white dark:bg-slate-700 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm"><i data-lucide="user-x" class="w-5 h-5"></i></div>
+                        <p class="text-[11px] font-bold text-slate-700 dark:text-white mb-0.5">Anda Belum Login</p>
+                        <p class="text-[9px] text-slate-500 dark:text-slate-400 px-2">Masuk untuk menyimpan riwayat.</p>
+                    </div>
+                    <button onclick="openLogin()" class="w-full bg-slate-800 dark:bg-primary text-white font-bold py-3.5 rounded-xl shadow-sm transition hover:bg-slate-900 flex items-center justify-center gap-2 text-xs">
+                        <i data-lucide="log-in" class="w-4 h-4"></i> Login Guru
+                    </button>
+                `;
             }
             lucide.createIcons();
         }
 
-        function toggleDarkMode() {
-            const html = document.documentElement;
-            const isDark = !html.classList.contains('dark');
-            localStorage.setItem('sakti_theme', isDark ? 'dark' : 'light');
-            applyTheme(isDark);
+        function openSettings() {
+            pushModalState('settings-modal');
+            renderAuthSection(); 
+            const modal = document.getElementById('settings-modal');
+            const bg = document.getElementById('settings-bg');
+            const content = document.getElementById('settings-content');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                bg.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
         }
 
-        if (localStorage.getItem('sakti_theme') === 'dark' || (!('sakti_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            applyTheme(true);
+        function openLogin() {
+            window.history.replaceState({ modal: 'login-modal' }, "");
+            const modalSet = document.getElementById('settings-modal');
+            const contentSet = document.getElementById('settings-content');
+            contentSet.classList.remove('scale-100', 'opacity-100');
+            contentSet.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modalSet.classList.add('hidden');
+                const modal = document.getElementById('login-modal');
+                const bg = document.getElementById('login-bg');
+                const content = document.getElementById('login-content');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    bg.classList.remove('opacity-0');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }, 200);
         }
 
-        // --- 2. DATA LOAD & RENDER ---
-        const colorMap = {
-            blue: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-100 dark:border-blue-800/50', ota: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' },
-            red: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', border: 'border-red-100 dark:border-red-800/50', ota: 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800' },
-            green: { bg: 'bg-green-50 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400', border: 'border-green-100 dark:border-green-800/50', ota: 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800' },
-            orange: { bg: 'bg-orange-50 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', border: 'border-orange-100 dark:border-orange-800/50', ota: 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800' },
-            purple: { bg: 'bg-purple-50 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-100 dark:border-purple-800/50', ota: 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800' },
-            teal: { bg: 'bg-teal-50 dark:bg-teal-900/30', text: 'text-teal-600 dark:text-teal-400', border: 'border-teal-100 dark:border-teal-800/50', ota: 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800' },
-            yellow: { bg: 'bg-yellow-50 dark:bg-yellow-900/30', text: 'text-yellow-600 dark:text-yellow-400', border: 'border-yellow-100 dark:border-yellow-800/50', ota: 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800' }
+        function closeLogin() {
+            window.history.replaceState({ modal: 'settings-modal' }, "");
+            const modalLogin = document.getElementById('login-modal');
+            const contentLogin = document.getElementById('login-content');
+            contentLogin.classList.remove('scale-100', 'opacity-100');
+            contentLogin.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modalLogin.classList.add('hidden');
+                const modalSet = document.getElementById('settings-modal');
+                const contentSet = document.getElementById('settings-content');
+                modalSet.classList.remove('hidden');
+                setTimeout(() => {
+                    contentSet.classList.remove('scale-95', 'opacity-0');
+                    contentSet.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }, 200);
+        }
+
+        async function submitLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('login-pin').value;
+            const btn = document.getElementById('btn-submit-login');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Memeriksa...';
+            lucide.createIcons();
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}?action=user_login&pin=${pin}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    localStorage.setItem('sakti_user', JSON.stringify(data.user));
+                    Swal.fire({ icon: 'success', title: 'Berhasil Masuk', text: `Selamat datang!`, timer: 1000, showConfirmButton: false });
+                    updateGreetingText();
+                    window.history.back(); 
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: data.message, confirmButtonColor: '#FF9000' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Koneksi Terputus', text: 'Coba lagi nanti.', confirmButtonColor: '#FF9000' });
+            }
+            btn.innerHTML = 'Masuk'; btn.disabled = false; document.getElementById('login-pin').value = ''; lucide.createIcons();
+        }
+
+        function confirmLogout() {
+            Swal.fire({
+                title: 'Keluar Akun?', text: "Anda harus login kembali untuk akses khusus.", icon: 'warning',
+                showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Ya, Keluar', cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('sakti_user');
+                    updateGreetingText();
+                    renderAuthSection();
+                    Swal.fire({ icon: 'success', title: 'Berhasil Keluar', showConfirmButton: false, timer: 1000 });
+                }
+            });
+        }
+
+        function optimizeApp() {
+            window.history.back(); 
+            Swal.fire({
+                title: 'Optimasi Aplikasi?', text: "Membersihkan file sampah dan mengunduh ulang data terbaru.", icon: 'question',
+                showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#cbd5e1', confirmButtonText: 'Ya, Bersihkan', cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if('caches' in window) { caches.keys().then(names => { names.forEach(name => caches.delete(name)); }); }
+                    Swal.fire({ icon: 'success', title: 'Optimasi Selesai', text: 'Memuat ulang aplikasi...', showConfirmButton: false, timer: 1000 });
+                    setTimeout(() => window.location.reload(true), 1000);
+                }
+            });
+        }
+
+        // --- 3. FETCH & RENDER DATA (WIDGET MENU) ---
+        const colorPalette = {
+            blue: { gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/30' },
+            red: { gradient: 'from-red-500 to-rose-600', shadow: 'shadow-red-500/30' },
+            green: { gradient: 'from-emerald-400 to-teal-500', shadow: 'shadow-emerald-500/30' },
+            orange: { gradient: 'from-orange-400 to-orange-600', shadow: 'shadow-orange-500/30' },
+            purple: { gradient: 'from-purple-500 to-fuchsia-600', shadow: 'shadow-purple-500/30' },
+            teal: { gradient: 'from-teal-400 to-cyan-500', shadow: 'shadow-teal-500/30' },
+            yellow: { gradient: 'from-amber-400 to-orange-500', shadow: 'shadow-amber-500/30' }
         };
 
         window.addEventListener('load', async () => {
@@ -246,166 +473,87 @@
                 if (data.status === "success") {
                     renderMenu(data.raw_menu);
                     if(data.info.versi) document.getElementById('app-version').innerText = data.info.versi;
+                    
+                    // RENDER BANNER INFO DI DALAM HERO WIDGET
                     if (data.info.status === 'ON' && data.info.pesan) {
-                        const banner = document.getElementById('ota-banner');
-                        banner.className = `rounded-xl p-3 flex items-center gap-3 text-sm font-bold shadow-sm border mb-1 ${colorMap[data.info.warna].ota}`;
-                        document.getElementById('ota-text').innerText = data.info.pesan;
+                        const banner = document.getElementById('hero-ota-banner');
+                        document.getElementById('hero-ota-text').innerText = data.info.pesan;
                         banner.classList.remove('hidden');
                     }
                 }
             } catch (err) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal Memuat!',
-                    text: 'Periksa koneksi internet Anda.',
-                    confirmButtonColor: '#FF9000'
-                });
+                console.log(err);
             } finally {
+                // Loading Sat-Set (100ms)
                 setTimeout(() => {
                     document.getElementById('loader').classList.add('opacity-0', 'pointer-events-none');
                     document.getElementById('main-content').classList.remove('hidden');
                     lucide.createIcons();
-                }, 500);
+                }, 100); 
             }
         });
+
+        // Fungsi Menutup Banner Info di Hero Widget
+        function closeHeroBanner() {
+            const banner = document.getElementById('hero-ota-banner');
+            banner.classList.add('opacity-0', '-translate-y-4', 'scale-95');
+            setTimeout(() => banner.classList.add('hidden'), 400);
+        }
 
         function renderMenu(rawMenu) {
             const grid = document.getElementById('app-grid');
             grid.innerHTML = ''; 
+            let delayCounter = 50;
+
             rawMenu.forEach((row, index) => {
                 if (index === 0 || !row[0]) return; 
-                const colors = colorMap[row[4]] || colorMap['blue'];
+                
                 const target = (row[5] || "all").toLowerCase();
                 const displayClass = target === "mobile" ? "block md:hidden" : target === "desktop" ? "hidden md:block" : "block";
-                const spanClass = (row[7] || "").toLowerCase() === "wide" ? "md:col-span-2" : "";
-                const badgeHTML = row[8] ? `<span class="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl shadow-sm uppercase">${row[8]}</span>` : "";
-
-                grid.insertAdjacentHTML('beforeend', `
-                    <a href="${row[2]}" class="${displayClass} ${spanClass} group h-full">
-                        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-orange-200 dark:hover:border-orange-500 transition-all active:scale-[0.98] flex items-center gap-4 relative overflow-hidden h-full">
-                            ${badgeHTML}
-                            <div class="w-12 h-12 shrink-0 rounded-xl ${colors.bg} ${colors.text} flex items-center justify-center border ${colors.border}">
-                                <i data-lucide="${row[3] || 'circle'}" class="w-6 h-6"></i>
-                            </div>
-                            <div class="flex-grow pr-2">
-                                <h3 class="text-sm font-bold text-slate-800 dark:text-white">${row[0]}</h3>
-                                <p class="text-[10px] text-slate-400 dark:text-slate-400 font-medium leading-snug mt-0.5">${row[1]}</p>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 dark:text-slate-600"></i>
-                        </div>
-                    </a>
-                `);
-            });
-        }
-
-        // --- 3. LOGIN & SWEETALERT ---
-        function openProfile() {
-            const userData = localStorage.getItem('sakti_user');
-            if (userData) {
-                const user = JSON.parse(userData);
-                document.getElementById('prof-initial').innerText = user.nama.charAt(0).toUpperCase();
-                document.getElementById('prof-nama').innerText = user.nama;
-                document.getElementById('prof-jabatan').innerText = user.jabatan || 'Guru';
-                document.getElementById('prof-nip').innerText = user.nip || '-';
-                document.getElementById('prof-instansi').innerText = user.instansi || '-';
-                showModal('profile-modal', 'profile-content');
-            } else {
-                showModal('login-modal', 'login-content');
-            }
-        }
-
-        async function submitLogin(e) {
-            e.preventDefault();
-            const pin = document.getElementById('login-pin').value;
-            const btn = document.getElementById('btn-submit-login');
-            
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memeriksa...';
-            lucide.createIcons();
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}?action=user_login&pin=${pin}`);
-                const data = await res.json();
+                const isWide = (row[7] || "").toLowerCase() === "wide";
+                const spanClass = isWide ? "col-span-2 md:col-span-2 lg:col-span-3" : "col-span-1";
+                const badgeHTML = row[8] ? `<span class="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-[1rem] shadow-sm uppercase z-20">${row[8]}</span>` : "";
                 
-                if (data.status === 'success') {
-                    localStorage.setItem('sakti_user', JSON.stringify(data.user));
-                    closeModals();
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil Masuk',
-                        text: `Selamat datang, ${data.user.nama}!`,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
+                const colors = colorPalette[row[4]] || colorPalette['blue'];
 
-                    setTimeout(() => openProfile(), 1600);
+                if (isWide) {
+                    grid.insertAdjacentHTML('beforeend', `
+                        <a href="${row[2]}" class="${displayClass} ${spanClass} fade-in" style="animation-delay: ${delayCounter}ms">
+                            <div class="ripple bg-gradient-to-br ${colors.gradient} p-4 rounded-[1.2rem] md:rounded-[1.5rem] shadow-md ${colors.shadow} hover:-translate-y-1 transition-all active:scale-[0.98] group relative overflow-hidden flex items-center gap-3 md:gap-4 h-full border border-white/10">
+                                ${badgeHTML}
+                                <div class="absolute right-[-20px] top-[-20px] w-32 h-32 bg-white/20 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700 pointer-events-none"></div>
+                                <div class="w-12 h-12 md:w-14 md:h-14 shrink-0 bg-white/20 backdrop-blur-md rounded-[1rem] flex items-center justify-center text-white border border-white/30 shadow-inner group-hover:bg-white/30 transition-colors relative z-10">
+                                    <i data-lucide="${row[3] || 'info'}" class="w-6 h-6 md:w-7 md:h-7"></i>
+                                </div>
+                                <div class="flex-grow pr-2 relative z-10">
+                                    <h3 class="text-sm md:text-base font-bold text-white line-clamp-1 drop-shadow-sm">${row[0]}</h3>
+                                    <p class="text-[10px] md:text-[11px] text-white/80 font-medium line-clamp-1 mt-0.5">${row[1]}</p>
+                                </div>
+                                <div class="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0 relative z-10 group-hover:bg-white group-hover:text-slate-800 transition-colors shadow-sm"><i data-lucide="arrow-right" class="w-4 h-4 md:w-4 md:h-4"></i></div>
+                            </div>
+                        </a>
+                    `);
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: data.message, confirmButtonColor: '#FF9000' });
+                    grid.insertAdjacentHTML('beforeend', `
+                        <a href="${row[2]}" class="${displayClass} ${spanClass} fade-in" style="animation-delay: ${delayCounter}ms">
+                            <div class="ripple bg-gradient-to-br ${colors.gradient} p-4 rounded-[1.2rem] md:rounded-[1.5rem] shadow-md ${colors.shadow} hover:-translate-y-1 transition-all active:scale-[0.98] group relative overflow-hidden flex flex-col justify-between min-h-[110px] md:min-h-[130px] border border-white/10 h-full">
+                                ${badgeHTML}
+                                <div class="absolute -right-6 -top-6 w-24 h-24 bg-white/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+                                <div class="w-10 h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-md rounded-[1rem] flex items-center justify-center text-white border border-white/30 shadow-inner group-hover:bg-white/30 transition-colors mb-2.5 relative z-10">
+                                    <i data-lucide="${row[3] || 'circle'}" class="w-5 h-5 md:w-6 md:h-6"></i>
+                                </div>
+                                <div class="relative z-10 pr-1">
+                                    <h3 class="text-xs md:text-sm font-bold text-white line-clamp-1 drop-shadow-sm">${row[0]}</h3>
+                                    <p class="text-[9px] md:text-[10px] text-white/80 font-medium line-clamp-2 mt-0.5 leading-snug">${row[1]}</p>
+                                </div>
+                                <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white/60"><i data-lucide="${target === 'desktop' ? 'external-link' : 'arrow-right'}" class="w-4 h-4"></i></div>
+                            </div>
+                        </a>
+                    `);
                 }
-            } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Koneksi Terputus', text: 'Coba lagi beberapa saat.', confirmButtonColor: '#FF9000' });
-            }
-            
-            btn.innerHTML = 'Buka Profil';
-            btn.disabled = false;
-            document.getElementById('login-pin').value = '';
-        }
-
-        function confirmLogout() {
-            closeModals();
-            Swal.fire({
-                title: 'Keluar Akun?',
-                text: "Anda harus login kembali untuk melihat profil.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Keluar!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    localStorage.removeItem('sakti_user');
-                    Swal.fire({ icon: 'success', title: 'Berhasil Keluar', showConfirmButton: false, timer: 1200 });
-                }
+                delayCounter += 50;
             });
-        }
-
-        function showModal(modalId, contentId) {
-            const modal = document.getElementById(modalId);
-            const content = document.getElementById(contentId);
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 50);
-        }
-
-        function closeModals() {
-            const contents = ['login-content', 'profile-content'];
-            contents.forEach(id => {
-                const el = document.getElementById(id);
-                if(el) {
-                    el.classList.remove('scale-100', 'opacity-100');
-                    el.classList.add('scale-95', 'opacity-0');
-                }
-            });
-            setTimeout(() => {
-                document.getElementById('login-modal').classList.add('hidden');
-                document.getElementById('profile-modal').classList.add('hidden');
-            }, 300);
-        }
-
-        // --- PWA INSTALL PROMPT ---
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
-        });
-        
-        function hideInstallSheet() {
-            document.getElementById('install-backdrop').classList.add('opacity-0');
-            document.getElementById('install-sheet').classList.add('translate-y-full');
-            setTimeout(() => document.getElementById('install-sheet-overlay').classList.add('hidden'), 300);
+            lucide.createIcons();
         }
     </script>
 </body>
