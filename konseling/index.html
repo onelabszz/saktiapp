@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#FF9000" id="meta-theme-color">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png">
+    <title>E-Konseling SDN 3 Krisak</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    colors: { primary: '#FF9000', primaryDark: '#e65100' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(255, 144, 0, 0.4)',
+                        'card': '0 8px 25px -8px rgba(0,0,0,0.08)',
+                        'soft': '0 4px 15px -2px rgba(0,0,0,0.04)',
+                        'floating': '0 10px 30px -5px rgba(0,0,0,0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        html, body { overscroll-behavior-y: none; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; transition: background-color 0.2s ease; user-select: none; -webkit-user-select: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .ripple { position: relative; overflow: hidden; }
+        .ripple:after { content: ""; display: block; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; background-image: radial-gradient(circle, #fff 10%, transparent 10.01%); background-repeat: no-repeat; background-position: 50%; transform: scale(10, 10); opacity: 0; transition: transform .4s, opacity 1s; }
+        .ripple:active:after { transform: scale(0, 0); opacity: 0.2; transition: 0s; }
+        .swal2-popup { border-radius: 1.5rem !important; font-family: 'Inter', sans-serif !important; width: 90% !important; max-width: 380px !important; }
+        .dark .swal2-popup { background-color: #1e293b !important; color: #fdfbf7 !important; }
+        .dark .swal2-title, .dark .swal2-html-container { color: #fdfbf7 !important; }
+    </style>
+</head>
+<body class="text-slate-800 dark:text-slate-100 min-h-screen relative overflow-x-hidden md:flex md:justify-center bg-[#f4f6f8] dark:bg-slate-900 no-scrollbar pb-24 md:pb-0">
+
+    <div class="fixed top-[-50px] left-[-50px] w-64 h-64 bg-orange-200/40 dark:bg-orange-900/10 rounded-full blur-3xl opacity-60 z-0 pointer-events-none"></div>
+    <div class="fixed bottom-[-50px] right-[-50px] w-48 h-48 bg-yellow-200/40 dark:bg-yellow-900/10 rounded-full blur-3xl opacity-60 z-0 pointer-events-none"></div>
+
+    <div id="loader" class="fixed inset-0 z-[100] bg-primary dark:bg-slate-900 flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="relative w-20 h-20 flex items-center justify-center mb-4 p-3 bg-white dark:bg-slate-800 rounded-[2rem] shadow-card">
+            <div class="absolute inset-0 border-[4px] border-slate-100 dark:border-slate-700 border-t-primary rounded-[2rem] animate-spin"></div>
+            <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-12 h-12 object-contain animate-pulse">
+        </div>
+    </div>
+
+    <header class="md:hidden sticky top-0 left-0 right-0 z-50 px-5 pb-3 pt-[calc(env(safe-area-inset-top)+12px)] flex justify-between items-center bg-primary dark:bg-slate-900 transition-colors duration-300 shadow-sm">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-[0.8rem] bg-white/20 backdrop-blur-md p-1.5 flex items-center justify-center border border-white/30">
+                <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" class="w-full h-full object-contain">
+            </div>
+            <div>
+                <h1 class="font-black text-white text-xl leading-none">E-Konseling</h1>
+                <p class="text-[10px] text-white/90 font-extrabold pt-1 tracking-widest uppercase">SDN 3 Krisak</p>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="relative z-10 w-full max-w-[1920px] mx-auto min-h-screen px-4 md:px-8 pt-5 pb-8 flex flex-col md:flex-row gap-6 hidden">
+        
+        <aside class="hidden md:flex flex-col sticky top-12 h-fit text-left fade-in md:w-[28%] max-w-[350px]">
+            <div class="w-28 h-28 rounded-[1.5rem] bg-white dark:bg-slate-800 p-5 shadow-soft border border-orange-100 dark:border-slate-700 flex items-center justify-center mb-6 relative group">
+                <div class="absolute inset-0 bg-orange-50 dark:bg-slate-700 rounded-[1.5rem] rotate-6 group-hover:rotate-12 transition -z-10"></div>
+                <img src="https://raw.githubusercontent.com/onelabszz/saktiapp/refs/heads/main/sakti.png" alt="Logo" class="w-full h-full object-contain">
+            </div>
+            <h1 class="text-3xl font-black text-slate-800 dark:text-white leading-none mb-2">E-Konseling</h1>
+            <p class="text-slate-400 dark:text-slate-500 text-base font-bold mb-5">SD Negeri 3 Krisak</p>
+            <button onclick="openSettings()" class="ripple w-full bg-slate-800 dark:bg-primary hover:bg-slate-900 text-white font-bold py-4 rounded-[1.2rem] shadow-card transition flex justify-center items-center gap-2">
+                <i data-lucide="settings-2" class="w-5 h-5"></i> Control Panel
+            </button>
+        </aside>
+
+        <div class="flex flex-col gap-4 w-full md:w-[72%]">
+            
+            <div class="fade-in bg-gradient-to-br from-primary to-primaryDark dark:from-slate-800 dark:to-slate-900 rounded-[1.5rem] p-6 text-white shadow-xl shadow-orange-500/30 dark:shadow-none relative overflow-hidden border border-white/10">
+                <div class="absolute right-[-50px] top-[-50px] w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex justify-between items-center mb-2">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3 text-white/90">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            <span class="text-xs font-bold uppercase tracking-widest">Sistem Pendataan</span>
+                        </div>
+                        <h2 id="greeting-text" class="text-2xl lg:text-3xl font-black leading-tight mb-1">Buku Kasus</h2>
+                        <p id="greeting-desc" class="text-white/90 text-sm font-medium">Masuk untuk melihat riwayat siswa.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="auth-state-container" class="fade-in mt-2">
+                <div id="state-logged-out" class="bg-white dark:bg-slate-800 rounded-[1.5rem] p-8 text-center border border-slate-100 dark:border-slate-700 shadow-soft">
+                    <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="lock" class="w-8 h-8"></i></div>
+                    <h3 class="text-lg font-black text-slate-800 dark:text-white mb-2">Akses Terkunci</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 px-4">Aplikasi ini bersifat personal. Silakan login menggunakan PIN GTK Anda untuk mencatat atau memantau kasus siswa.</p>
+                    <button onclick="openLogin()" class="ripple bg-primary hover:bg-primaryDark text-white font-bold py-3.5 px-8 rounded-xl shadow-glow transition mx-auto flex items-center gap-2">
+                        <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Sekarang
+                    </button>
+                </div>
+
+                <div id="state-logged-in" class="hidden flex flex-col gap-4">
+                    
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.2rem] border border-slate-100 dark:border-slate-700 shadow-soft flex flex-col items-center justify-center text-center">
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</h4>
+                            <span id="stat-total" class="text-2xl font-black text-slate-800 dark:text-white">0</span>
+                        </div>
+                        <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-[1.2rem] border border-emerald-100 dark:border-emerald-800/30 flex flex-col items-center justify-center text-center">
+                            <h4 class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Selesai</h4>
+                            <span id="stat-selesai" class="text-2xl font-black text-emerald-600 dark:text-emerald-400">0</span>
+                        </div>
+                        <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-[1.2rem] border border-amber-100 dark:border-amber-800/30 flex flex-col items-center justify-center text-center">
+                            <h4 class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1">Pantauan</h4>
+                            <span id="stat-lanjut" class="text-2xl font-black text-amber-600 dark:text-amber-400">0</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-2">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="list-collapse" class="w-5 h-5 text-primary"></i>
+                            <span class="text-xs font-extrabold text-slate-500 uppercase tracking-widest">Riwayat Kasus</span>
+                        </div>
+                        <button id="btn-add-kasus" onclick="toggleFormKasus()" class="bg-slate-800 dark:bg-primary text-white text-[11px] font-bold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5 active:scale-95 transition">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Catat Baru
+                        </button>
+                    </div>
+
+                    <div id="form-kasus-container" class="hidden bg-white dark:bg-slate-800 rounded-[1.5rem] p-5 lg:p-6 border border-slate-100 dark:border-slate-700 shadow-card">
+                        <h3 class="font-black text-lg mb-4 text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-700 pb-3">Formulir Catatan Baru</h3>
+                        <form id="formInputData" onsubmit="simpanKasus(event)" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tanggal</label>
+                                    <input type="date" id="inputTgl" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kelas</label>
+                                    <select id="inputKelas" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required>
+                                        <option value="" disabled selected>Pilih...</option>
+                                        <option value="1">Kelas 1</option><option value="2">Kelas 2</option>
+                                        <option value="3">Kelas 3</option><option value="4">Kelas 4</option>
+                                        <option value="5">Kelas 5</option><option value="6">Kelas 6</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nama Siswa</label>
+                                <input type="text" id="inputNama" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori Masalah</label>
+                                <select id="inputKategori" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required>
+                                    <option value="Akademik/Belajar">Akademik/Belajar</option>
+                                    <option value="Kedisiplinan">Kedisiplinan</option>
+                                    <option value="Akhlak/Ibadah">Akhlak/Ibadah</option>
+                                    <option value="Sosial/Teman">Sosial/Teman</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Uraian Kejadian</label>
+                                <textarea id="inputUraian" rows="2" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tindakan Penanganan</label>
+                                <textarea id="inputPenanganan" rows="2" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Penyelesaian</label>
+                                <select id="inputStatus" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required>
+                                    <option value="Selesai">Selesai</option>
+                                    <option value="Dalam Pantauan">Dalam Pantauan</option>
+                                    <option value="Lanjut Orang Tua">Lanjut Orang Tua</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <button type="button" onclick="toggleFormKasus()" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3 rounded-xl transition">Batal</button>
+                                <button type="submit" id="btn-submit-kasus" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl shadow-glow active:scale-95 transition">Simpan Data</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="loading-data" class="hidden flex flex-col items-center justify-center py-8">
+                        <i data-lucide="loader-2" class="w-8 h-8 text-primary animate-spin mb-2"></i>
+                        <p class="text-xs text-slate-500">Memuat riwayat sinkronisasi...</p>
+                    </div>
+
+                    <div id="list-kasus" class="flex flex-col gap-3"></div>
+
+                </div>
+            </div>
+
+            <div class="mt-8 text-center opacity-40 fade-in">
+                <p class="text-slate-400 text-[10px] font-bold tracking-widest uppercase">&copy; 2026 SDN 3 Krisak</p>
+            </div>
+        </div>
+    </main>
+
+    <button onclick="openSettings()" class="md:hidden fixed bottom-6 right-5 z-40 bg-slate-800 dark:bg-slate-800 text-white w-14 h-14 rounded-[1.2rem] shadow-floating flex items-center justify-center hover:scale-105 active:scale-90 transition border border-white/10">
+        <i data-lucide="settings-2" class="w-6 h-6"></i>
+    </button>
+
+    <div id="login-modal" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="login-bg" onclick="closeModals()"></div>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[1.5rem] shadow-2xl relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-200 p-6 md:p-8" id="login-content">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-50 dark:bg-slate-700 rounded-full p-1.5 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="w-14 h-14 bg-orange-50 dark:bg-slate-700 text-primary rounded-[1rem] flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-slate-600">
+                <i data-lucide="lock-keyhole" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-black text-center text-slate-800 dark:text-white mb-1">Verifikasi GTK</h3>
+            <p class="text-[10px] text-center text-slate-500 dark:text-slate-400 mb-5 font-medium">Masukkan PIN rahasia Anda.</p>
+            <form onsubmit="submitLogin(event)">
+                <input type="password" id="login-pin" class="w-full text-center text-2xl tracking-[0.5em] font-black border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl py-3.5 mb-4 outline-none focus:border-primary transition" maxlength="6" required placeholder="••••••">
+                <button type="submit" id="btn-submit-login" class="ripple w-full bg-slate-800 dark:bg-primary text-white text-sm font-bold py-3.5 rounded-xl transition shadow-lg flex justify-center items-center gap-2">
+                    Masuk
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="settings-bg" onclick="closeModals()"></div>
+        <div class="bg-[#fdfbf7] dark:bg-slate-900 w-full max-w-md rounded-[1.5rem] shadow-2xl relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-200 flex flex-col" id="settings-content">
+            <div class="bg-white dark:bg-slate-800 px-6 py-5 flex justify-between items-center border-b border-slate-100 dark:border-slate-700">
+                <h3 class="font-bold text-sm md:text-base text-slate-800 dark:text-white flex items-center gap-2"><i data-lucide="sliders-horizontal" class="w-4 h-4 text-primary"></i> Control Panel</h3>
+                <button onclick="closeModals()" class="text-slate-400 bg-slate-50 dark:bg-slate-700 rounded-full p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div id="settings-auth-container"></div>
+                <div>
+                    <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Tampilan</h4>
+                    <button onclick="handleDarkToggle()" class="w-full bg-white dark:bg-slate-800 p-4 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-yellow-400"><i data-lucide="moon" id="panel-theme-icon" class="w-4 h-4"></i></div>
+                            <div class="text-left">
+                                <span class="block text-xs font-bold text-slate-700 dark:text-white" id="panel-theme-text">Mode Gelap</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === KONFIGURASI API ===
+        const API_URL = "https://script.google.com/macros/s/AKfycby9u0653kO4Ya_q3ir4lSeab6G3XVMdkkNIQKj2-mQfP9s3ugr78GvwL2yzsuVcEOK8cg/exec"; 
+        
+        // Setup Theme & UI Initialization
+        let isDarkMode = localStorage.getItem('sakti_theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            applyThemeUI();
+            
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('main-content').classList.remove('hidden');
+                lucide.createIcons();
+                checkAuthState();
+            }, 1000);
+        });
+
+        function applyThemeUI() {
+            if (isDarkMode) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+            const icon = document.getElementById('panel-theme-icon');
+            const text = document.getElementById('panel-theme-text');
+            if(icon) {
+                icon.setAttribute('data-lucide', isDarkMode ? 'sun' : 'moon');
+                text.innerText = isDarkMode ? 'Mode Terang' : 'Mode Gelap';
+                lucide.createIcons();
+            }
+        }
+
+        function handleDarkToggle() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('sakti_theme', isDarkMode ? 'dark' : 'light');
+            applyThemeUI();
+        }
+
+        // === LOGIC APLIKASI ===
+        function checkAuthState() {
+            const userData = localStorage.getItem('sakti_user');
+            const elLoggedOut = document.getElementById('state-logged-out');
+            const elLoggedIn = document.getElementById('state-logged-in');
+            const greetText = document.getElementById('greeting-text');
+            const greetDesc = document.getElementById('greeting-desc');
+
+            if (userData) {
+                const user = JSON.parse(userData);
+                elLoggedOut.classList.add('hidden');
+                elLoggedIn.classList.remove('hidden');
+                greetText.innerText = `Halo, ${user.nama.split(' ')[0]}`;
+                greetDesc.innerText = `${user.jabatan} | ${user.role}`;
+                
+                // Jika Kepala Sekolah, hilangkan tombol Tambah Kasus
+                if(user.role === 'Kepala Sekolah') {
+                    document.getElementById('btn-add-kasus').classList.add('hidden');
+                } else {
+                    document.getElementById('btn-add-kasus').classList.remove('hidden');
+                }
+                
+                fetchDataKasus(user);
+            } else {
+                elLoggedOut.classList.remove('hidden');
+                elLoggedIn.classList.add('hidden');
+                greetText.innerText = "Buku Kasus";
+                greetDesc.innerText = "Sistem Pendataan Terpadu";
+            }
+        }
+
+        async function fetchDataKasus(user) {
+            document.getElementById('loading-data').classList.remove('hidden');
+            document.getElementById('list-kasus').innerHTML = '';
+            
+            try {
+                const res = await fetch(`${API_URL}?action=get_kasus&nama=${encodeURIComponent(user.nama)}&role=${encodeURIComponent(user.role)}`);
+                const result = await res.json();
+                
+                document.getElementById('loading-data').classList.add('hidden');
+                
+                if (result.status === 'success') {
+                    renderDaftarKasus(result.data, user.role);
+                }
+            } catch (err) {
+                document.getElementById('loading-data').innerHTML = `<p class="text-xs text-red-500">Gagal mengambil data server.</p>`;
+            }
+        }
+
+        function renderDaftarKasus(data, role) {
+            const container = document.getElementById('list-kasus');
+            container.innerHTML = '';
+            
+            let tSelesai = 0, tLanjut = 0;
+
+            if (data.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">Belum ada riwayat kasus tercatat.</div>`;
+                return;
+            }
+
+            data.forEach(item => {
+                if (item.Status === 'Selesai') tSelesai++; else tLanjut++;
+                
+                let tglFormat = item.Tanggal ? new Date(item.Tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
+                let badgeColor = item.Status === 'Selesai' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200';
+                
+                let html = `
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden group">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${tglFormat}</span>
+                        <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded border ${badgeColor}">${item.Status}</span>
+                    </div>
+                    <h4 class="text-sm font-black text-slate-800 dark:text-white mb-0.5">${item.Siswa} <span class="text-slate-400 font-medium text-xs">(Kelas ${item.Kelas})</span></h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium bg-slate-50 dark:bg-slate-900 p-2 rounded-lg mt-2 border border-slate-100 dark:border-slate-700">"${item.Uraian}"</p>
+                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                        <span class="text-[10px] font-bold text-primary flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> ${item.Kategori}</span>
+                        ${role === 'Kepala Sekolah' ? `<span class="text-[9px] text-slate-400 font-bold bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Pelapor: ${item.Nama_Guru}</span>` : ''}
+                    </div>
+                </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+
+            document.getElementById('stat-total').innerText = data.length;
+            document.getElementById('stat-selesai').innerText = tSelesai;
+            document.getElementById('stat-lanjut').innerText = tLanjut;
+            lucide.createIcons();
+        }
+
+        function toggleFormKasus() {
+            const form = document.getElementById('form-kasus-container');
+            form.classList.toggle('hidden');
+        }
+
+        async function simpanKasus(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-kasus');
+            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
+
+            const user = JSON.parse(localStorage.getItem('sakti_user'));
+            const dataToSave = {
+                Tanggal: document.getElementById('inputTgl').value,
+                Kelas: document.getElementById('inputKelas').value,
+                Siswa: document.getElementById('inputNama').value,
+                Kategori: document.getElementById('inputKategori').value,
+                Uraian: document.getElementById('inputUraian').value,
+                Penanganan: document.getElementById('inputPenanganan').value,
+                Status: document.getElementById('inputStatus').value,
+                Nama_Guru: user.nama
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(dataToSave)
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    Swal.fire({ icon: 'success', title: 'Tersimpan', text: 'Kasus berhasil dicatat.', timer: 1500, showConfirmButton: false });
+                    document.getElementById('formInputData').reset();
+                    toggleFormKasus();
+                    fetchDataKasus(user);
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Periksa koneksi internet Anda.' });
+            }
+            btn.innerHTML = 'Simpan Data'; btn.disabled = false;
+        }
+
+        // === MODAL & AUTH HANDLING ===
+        function openSettings() {
+            const container = document.getElementById('settings-auth-container');
+            const userData = localStorage.getItem('sakti_user');
+            if(userData) {
+                const u = JSON.parse(userData);
+                container.innerHTML = `
+                    <div class="bg-gradient-to-br from-primary to-primaryDark rounded-[1rem] p-4 text-white shadow-soft mb-3">
+                        <p class="text-[10px] uppercase font-bold text-white/80">Login Aktif</p>
+                        <h3 class="font-black text-lg">${u.nama}</h3>
+                        <p class="text-xs font-medium">${u.jabatan}</p>
+                    </div>
+                    <button onclick="logout()" class="w-full bg-red-50 text-red-600 font-bold py-3 rounded-xl border border-red-100 flex items-center justify-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i> Keluar Akun</button>
+                `;
+            } else {
+                container.innerHTML = `<button onclick="openLogin()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i data-lucide="log-in" class="w-4 h-4"></i> Login GTK</button>`;
+            }
+            lucide.createIcons();
+
+            document.getElementById('settings-modal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('settings-bg').classList.remove('opacity-0');
+                document.getElementById('settings-content').classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function openLogin() {
+            closeModals();
+            setTimeout(() => {
+                document.getElementById('login-modal').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('login-bg').classList.remove('opacity-0');
+                    document.getElementById('login-content').classList.remove('scale-95', 'opacity-0');
+                }, 10);
+            }, 300);
+        }
+
+        function closeModals() {
+            ['settings', 'login'].forEach(id => {
+                const content = document.getElementById(id+'-content');
+                if(content) {
+                    content.classList.add('scale-95', 'opacity-0');
+                    document.getElementById(id+'-bg').classList.add('opacity-0');
+                    setTimeout(() => document.getElementById(id+'-modal').classList.add('hidden'), 200);
+                }
+            });
+        }
+
+        async function submitLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('login-pin').value;
+            const btn = document.getElementById('btn-submit-login');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memeriksa...'; btn.disabled = true; lucide.createIcons();
+
+            try {
+                const res = await fetch(`${API_URL}?action=user_login&pin=${pin}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    localStorage.setItem('sakti_user', JSON.stringify(data.user));
+                    Swal.fire({ icon: 'success', title: 'Berhasil Masuk', showConfirmButton: false, timer: 1000 });
+                    closeModals();
+                    checkAuthState();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'PIN tidak terdaftar.', confirmButtonColor: '#FF9000' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Gangguan', text: 'Gagal terhubung ke server.' });
+            }
+            btn.innerHTML = 'Masuk'; btn.disabled = false; document.getElementById('login-pin').value = '';
+        }
+
+        function logout() {
+            localStorage.removeItem('sakti_user');
+            closeModals(); checkAuthState();
+            Swal.fire({ icon: 'success', title: 'Berhasil Keluar', showConfirmButton: false, timer: 1000 });
+        }
+    </script>
+</body>
+</html>
