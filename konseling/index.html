@@ -28,6 +28,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
@@ -101,7 +102,7 @@
                 <div id="state-logged-out" class="bg-white dark:bg-slate-800 rounded-[1.5rem] p-8 text-center border border-slate-100 dark:border-slate-700 shadow-soft">
                     <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="lock" class="w-8 h-8"></i></div>
                     <h3 class="text-lg font-black text-slate-800 dark:text-white mb-2">Akses Terkunci</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 px-4">Aplikasi ini bersifat personal. Silakan login menggunakan PIN GTK Anda untuk mencatat atau memantau kasus siswa.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 px-4">Aplikasi ini bersifat personal. Silakan login menggunakan password GTK Anda untuk mencatat atau memantau kasus siswa.</p>
                     <button onclick="openLogin()" class="ripple bg-primary hover:bg-primaryDark text-white font-bold py-3.5 px-8 rounded-xl shadow-glow transition mx-auto flex items-center gap-2">
                         <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Sekarang
                     </button>
@@ -154,7 +155,7 @@
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nama Siswa</label>
-                                <input type="text" id="inputNama" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required>
+                                <input type="text" id="inputNama" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" placeholder="Masukkan nama siswa..." required>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori Masalah</label>
@@ -167,22 +168,34 @@
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Uraian Kejadian</label>
-                                <textarea id="inputUraian" rows="2" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required></textarea>
+                                <textarea id="inputUraian" rows="2" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" placeholder="Jelaskan secara singkat..." required></textarea>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tindakan Penanganan</label>
-                                <textarea id="inputPenanganan" rows="2" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required></textarea>
+                                <textarea id="inputPenanganan" rows="2" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" placeholder="Langkah yang telah diambil..." required></textarea>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Penyelesaian</label>
                                 <select id="inputStatus" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-primary transition" required>
                                     <option value="Selesai">Selesai</option>
                                     <option value="Dalam Pantauan">Dalam Pantauan</option>
-                                    <option value="Lanjut Orang Tua">Lanjut Orang Tua</option>
+                                    <option value="Lanjut Orang Tua">Lanjut ke Orang Tua</option>
                                 </select>
                             </div>
+                            
+                            <div class="pt-1">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lampiran Foto Bukti (Opsional)</label>
+                                <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                                    <input type="file" id="inputLampiran" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                    <div class="flex flex-col items-center justify-center pointer-events-none">
+                                        <i data-lucide="image-plus" class="w-6 h-6 text-slate-400 mb-2"></i>
+                                        <span id="label-file" class="text-[10px] font-bold text-slate-500">Ketuk untuk unggah foto...</span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="flex gap-2 pt-2">
-                                <button type="button" onclick="toggleFormKasus()" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3 rounded-xl transition">Batal</button>
+                                <button type="button" onclick="toggleFormKasus()" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3 rounded-xl transition hover:bg-slate-200">Batal</button>
                                 <button type="submit" id="btn-submit-kasus" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl shadow-glow active:scale-95 transition">Simpan Data</button>
                             </div>
                         </form>
@@ -216,9 +229,9 @@
                 <i data-lucide="lock-keyhole" class="w-6 h-6"></i>
             </div>
             <h3 class="text-xl font-black text-center text-slate-800 dark:text-white mb-1">Verifikasi GTK</h3>
-            <p class="text-[10px] text-center text-slate-500 dark:text-slate-400 mb-5 font-medium">Masukkan PIN rahasia Anda.</p>
+            <p class="text-[10px] text-center text-slate-500 dark:text-slate-400 mb-5 font-medium">Masukkan password akun Anda.</p>
             <form onsubmit="submitLogin(event)">
-                <input type="password" id="login-pin" class="w-full text-center text-2xl tracking-[0.5em] font-black border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl py-3.5 mb-4 outline-none focus:border-primary transition" maxlength="6" required placeholder="••••••">
+                <input type="password" id="login-password" class="w-full text-left text-base font-medium border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3.5 mb-4 outline-none focus:border-primary transition" required placeholder="Ketik password...">
                 <button type="submit" id="btn-submit-login" class="ripple w-full bg-slate-800 dark:bg-primary text-white text-sm font-bold py-3.5 rounded-xl transition shadow-lg flex justify-center items-center gap-2">
                     Masuk
                 </button>
@@ -237,9 +250,9 @@
                 <div id="settings-auth-container"></div>
                 <div>
                     <h4 class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Tampilan</h4>
-                    <button onclick="handleDarkToggle()" class="w-full bg-white dark:bg-slate-800 p-4 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                    <button onclick="handleDarkToggle()" class="w-full bg-white dark:bg-slate-800 p-4 rounded-[1rem] shadow-sm border border-slate-100 dark:border-slate-700 flex justify-between items-center transition group hover:bg-slate-50 dark:hover:bg-slate-700">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-yellow-400"><i data-lucide="moon" id="panel-theme-icon" class="w-4 h-4"></i></div>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-yellow-400 group-hover:scale-110 transition"><i data-lucide="moon" id="panel-theme-icon" class="w-4 h-4"></i></div>
                             <div class="text-left">
                                 <span class="block text-xs font-bold text-slate-700 dark:text-white" id="panel-theme-text">Mode Gelap</span>
                             </div>
@@ -251,15 +264,18 @@
     </div>
 
     <script>
-        // === KONFIGURASI API ===
+        // ==========================================================
+        // KONFIGURASI API BACKEND (PASTIKAN URL INI BENAR)
+        // ==========================================================
         const API_URL = "https://script.google.com/macros/s/AKfycby9u0653kO4Ya_q3ir4lSeab6G3XVMdkkNIQKj2-mQfP9s3ugr78GvwL2yzsuVcEOK8cg/exec"; 
         
-        // Setup Theme & UI Initialization
+        // --- Inisialisasi Tema (Dark/Light Mode) ---
         let isDarkMode = localStorage.getItem('sakti_theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches;
         
         window.addEventListener('DOMContentLoaded', () => {
             applyThemeUI();
             
+            // Failsafe Loading
             setTimeout(() => {
                 document.getElementById('loader').classList.add('opacity-0', 'pointer-events-none');
                 document.getElementById('main-content').classList.remove('hidden');
@@ -286,7 +302,14 @@
             applyThemeUI();
         }
 
-        // === LOGIC APLIKASI ===
+        // --- Deteksi Perubahan File Foto ---
+        document.getElementById('inputLampiran')?.addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            document.getElementById('label-file').innerText = fileName ? fileName : "Ketuk untuk unggah foto...";
+            document.getElementById('label-file').classList.add('text-primary');
+        });
+
+        // --- Logika Login & Sesi Auth ---
         function checkAuthState() {
             const userData = localStorage.getItem('sakti_user');
             const elLoggedOut = document.getElementById('state-logged-out');
@@ -301,7 +324,6 @@
                 greetText.innerText = `Halo, ${user.nama.split(' ')[0]}`;
                 greetDesc.innerText = `${user.jabatan} | ${user.role}`;
                 
-                // Jika Kepala Sekolah, hilangkan tombol Tambah Kasus
                 if(user.role === 'Kepala Sekolah') {
                     document.getElementById('btn-add-kasus').classList.add('hidden');
                 } else {
@@ -317,12 +339,45 @@
             }
         }
 
+        async function submitLogin(e) {
+            e.preventDefault();
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-submit-login');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memeriksa...'; btn.disabled = true; lucide.createIcons();
+
+            try {
+                const urlFetch = `${API_URL}?action=user_login&password=${encodeURIComponent(password)}&t=${new Date().getTime()}`;
+                const res = await fetch(urlFetch);
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    localStorage.setItem('sakti_user', JSON.stringify(data.user));
+                    Swal.fire({ icon: 'success', title: 'Berhasil Masuk', showConfirmButton: false, timer: 1000 });
+                    closeModals();
+                    checkAuthState();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: data.message, confirmButtonColor: '#FF9000' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Gangguan Jaringan', text: 'Gagal terhubung ke server API.' });
+            }
+            
+            btn.innerHTML = 'Masuk'; btn.disabled = false; document.getElementById('login-password').value = '';
+        }
+
+        function logout() {
+            localStorage.removeItem('sakti_user');
+            closeModals(); checkAuthState();
+            Swal.fire({ icon: 'success', title: 'Berhasil Keluar', showConfirmButton: false, timer: 1000 });
+        }
+
+        // --- Logika Ambil & Tampilkan Data ---
         async function fetchDataKasus(user) {
             document.getElementById('loading-data').classList.remove('hidden');
             document.getElementById('list-kasus').innerHTML = '';
             
             try {
-                const res = await fetch(`${API_URL}?action=get_kasus&nama=${encodeURIComponent(user.nama)}&role=${encodeURIComponent(user.role)}`);
+                const res = await fetch(`${API_URL}?action=get_kasus&nama=${encodeURIComponent(user.nama)}&role=${encodeURIComponent(user.role)}&t=${new Date().getTime()}`);
                 const result = await res.json();
                 
                 document.getElementById('loading-data').classList.add('hidden');
@@ -331,7 +386,7 @@
                     renderDaftarKasus(result.data, user.role);
                 }
             } catch (err) {
-                document.getElementById('loading-data').innerHTML = `<p class="text-xs text-red-500">Gagal mengambil data server.</p>`;
+                document.getElementById('loading-data').innerHTML = `<p class="text-xs text-red-500 py-4 text-center">Gagal mengambil data dari server.</p>`;
             }
         }
 
@@ -342,7 +397,8 @@
             let tSelesai = 0, tLanjut = 0;
 
             if (data.length === 0) {
-                container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">Belum ada riwayat kasus tercatat.</div>`;
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm"><i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>Belum ada riwayat kasus tercatat.</div>`;
+                lucide.createIcons();
                 return;
             }
 
@@ -352,6 +408,10 @@
                 let tglFormat = item.Tanggal ? new Date(item.Tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
                 let badgeColor = item.Status === 'Selesai' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200';
                 
+                // Cek jika ada link lampiran foto
+                let tombolLampiran = item.Lampiran && item.Lampiran.trim() !== '' ? 
+                    `<a href="${item.Lampiran}" target="_blank" class="text-[9px] font-bold bg-primary/10 text-primary dark:bg-primary/20 hover:bg-primary hover:text-white transition px-2 py-1 rounded flex items-center gap-1 border border-primary/20"><i data-lucide="image" class="w-3 h-3"></i> Bukti</a>` : '';
+
                 let html = `
                 <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden group">
                     <div class="flex justify-between items-start mb-2">
@@ -359,10 +419,13 @@
                         <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded border ${badgeColor}">${item.Status}</span>
                     </div>
                     <h4 class="text-sm font-black text-slate-800 dark:text-white mb-0.5">${item.Siswa} <span class="text-slate-400 font-medium text-xs">(Kelas ${item.Kelas})</span></h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium bg-slate-50 dark:bg-slate-900 p-2 rounded-lg mt-2 border border-slate-100 dark:border-slate-700">"${item.Uraian}"</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium bg-slate-50 dark:bg-slate-900 p-2.5 rounded-lg mt-2 border border-slate-100 dark:border-slate-700 italic">"${item.Uraian}"</p>
                     <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                        <span class="text-[10px] font-bold text-primary flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> ${item.Kategori}</span>
-                        ${role === 'Kepala Sekolah' ? `<span class="text-[9px] text-slate-400 font-bold bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Pelapor: ${item.Nama_Guru}</span>` : ''}
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3 text-primary"></i> ${item.Kategori}</span>
+                            ${tombolLampiran}
+                        </div>
+                        ${role === 'Kepala Sekolah' ? `<span class="text-[9px] text-slate-400 font-bold bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">Oleh: ${item.Nama_Guru}</span>` : ''}
                     </div>
                 </div>`;
                 container.insertAdjacentHTML('beforeend', html);
@@ -374,17 +437,64 @@
             lucide.createIcons();
         }
 
+        // --- Logika Input Data & Kompresi Foto ---
         function toggleFormKasus() {
             const form = document.getElementById('form-kasus-container');
             form.classList.toggle('hidden');
         }
 
+        // Fungsi Kompresi Foto dengan Canvas
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; const MAX_HEIGHT = 800;
+                        let width = img.width; let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Kualitas 60% agar ukuran file sangat kecil (100-200kb)
+                        resolve(canvas.toDataURL('image/jpeg', 0.6)); 
+                    };
+                };
+            });
+        }
+
         async function simpanKasus(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-submit-kasus');
-            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Menyiapkan...'; btn.disabled = true; lucide.createIcons();
 
             const user = JSON.parse(localStorage.getItem('sakti_user'));
+            let fileBase64 = ''; let fileName = ''; let mimeType = '';
+
+            // Proses Foto jika ada
+            const fileInput = document.getElementById('inputLampiran');
+            if (fileInput.files.length > 0) {
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Mengompresi Foto...'; lucide.createIcons();
+                const file = fileInput.files[0];
+                const compressedDataUrl = await compressImage(file);
+                
+                fileBase64 = compressedDataUrl.split(',')[1];
+                fileName = 'Bukti.jpg';
+                mimeType = 'image/jpeg';
+            }
+
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Menyimpan...'; lucide.createIcons();
+
             const dataToSave = {
                 Tanggal: document.getElementById('inputTgl').value,
                 Kelas: document.getElementById('inputKelas').value,
@@ -393,7 +503,10 @@
                 Uraian: document.getElementById('inputUraian').value,
                 Penanganan: document.getElementById('inputPenanganan').value,
                 Status: document.getElementById('inputStatus').value,
-                Nama_Guru: user.nama
+                Nama_Guru: user.nama,
+                fileBase64: fileBase64,
+                fileName: fileName,
+                mimeType: mimeType
             };
 
             try {
@@ -401,34 +514,41 @@
                     method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(dataToSave)
                 });
                 const result = await response.json();
+                
                 if (result.status === 'success') {
                     Swal.fire({ icon: 'success', title: 'Tersimpan', text: 'Kasus berhasil dicatat.', timer: 1500, showConfirmButton: false });
                     document.getElementById('formInputData').reset();
+                    document.getElementById('label-file').innerText = "Ketuk untuk unggah foto...";
+                    document.getElementById('label-file').classList.remove('text-primary');
                     toggleFormKasus();
                     fetchDataKasus(user);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: result.message });
                 }
             } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Periksa koneksi internet Anda.' });
+                Swal.fire({ icon: 'error', title: 'Gangguan', text: 'Periksa koneksi internet Anda.' });
             }
+            
             btn.innerHTML = 'Simpan Data'; btn.disabled = false;
         }
 
-        // === MODAL & AUTH HANDLING ===
+        // --- Logika Modals & UI Controls ---
         function openSettings() {
             const container = document.getElementById('settings-auth-container');
             const userData = localStorage.getItem('sakti_user');
             if(userData) {
                 const u = JSON.parse(userData);
                 container.innerHTML = `
-                    <div class="bg-gradient-to-br from-primary to-primaryDark rounded-[1rem] p-4 text-white shadow-soft mb-3">
-                        <p class="text-[10px] uppercase font-bold text-white/80">Login Aktif</p>
-                        <h3 class="font-black text-lg">${u.nama}</h3>
-                        <p class="text-xs font-medium">${u.jabatan}</p>
+                    <div class="bg-gradient-to-br from-primary to-primaryDark rounded-[1rem] p-5 text-white shadow-soft mb-3 relative overflow-hidden">
+                        <div class="absolute right-[-20px] top-[-20px] w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                        <p class="text-[9px] uppercase font-bold text-white/80 mb-1">Status: Terverifikasi</p>
+                        <h3 class="font-black text-xl mb-0.5 line-clamp-1">${u.nama}</h3>
+                        <p class="text-xs font-medium">${u.jabatan} | ${u.role}</p>
                     </div>
-                    <button onclick="logout()" class="w-full bg-red-50 text-red-600 font-bold py-3 rounded-xl border border-red-100 flex items-center justify-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i> Keluar Akun</button>
+                    <button onclick="logout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-3.5 rounded-xl border border-red-100 dark:border-red-800/30 flex items-center justify-center gap-2 hover:bg-red-100 transition"><i data-lucide="log-out" class="w-4 h-4"></i> Keluar Akun</button>
                 `;
             } else {
-                container.innerHTML = `<button onclick="openLogin()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i data-lucide="log-in" class="w-4 h-4"></i> Login GTK</button>`;
+                container.innerHTML = `<button onclick="openLogin()" class="w-full bg-slate-800 dark:bg-primary text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition"><i data-lucide="log-in" class="w-4 h-4"></i> Login GTK</button>`;
             }
             lucide.createIcons();
 
@@ -459,35 +579,6 @@
                     setTimeout(() => document.getElementById(id+'-modal').classList.add('hidden'), 200);
                 }
             });
-        }
-
-        async function submitLogin(e) {
-            e.preventDefault();
-            const pin = document.getElementById('login-pin').value;
-            const btn = document.getElementById('btn-submit-login');
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memeriksa...'; btn.disabled = true; lucide.createIcons();
-
-            try {
-                const res = await fetch(`${API_URL}?action=user_login&pin=${pin}`);
-                const data = await res.json();
-                if (data.status === 'success') {
-                    localStorage.setItem('sakti_user', JSON.stringify(data.user));
-                    Swal.fire({ icon: 'success', title: 'Berhasil Masuk', showConfirmButton: false, timer: 1000 });
-                    closeModals();
-                    checkAuthState();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'PIN tidak terdaftar.', confirmButtonColor: '#FF9000' });
-                }
-            } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Gangguan', text: 'Gagal terhubung ke server.' });
-            }
-            btn.innerHTML = 'Masuk'; btn.disabled = false; document.getElementById('login-pin').value = '';
-        }
-
-        function logout() {
-            localStorage.removeItem('sakti_user');
-            closeModals(); checkAuthState();
-            Swal.fire({ icon: 'success', title: 'Berhasil Keluar', showConfirmButton: false, timer: 1000 });
         }
     </script>
 </body>
