@@ -99,6 +99,7 @@
             </div>
 
             <div id="auth-state-container" class="fade-in mt-2">
+                
                 <div id="state-logged-out" class="bg-white dark:bg-slate-800 rounded-[1.5rem] p-8 text-center border border-slate-100 dark:border-slate-700 shadow-soft">
                     <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="lock" class="w-8 h-8"></i></div>
                     <h3 class="text-lg font-black text-slate-800 dark:text-white mb-2">Akses Terkunci</h3>
@@ -130,9 +131,16 @@
                             <i data-lucide="list-collapse" class="w-5 h-5 text-primary"></i>
                             <span class="text-xs font-extrabold text-slate-500 uppercase tracking-widest">Riwayat Kasus</span>
                         </div>
-                        <button id="btn-add-kasus" onclick="toggleFormKasus()" class="bg-slate-800 dark:bg-primary text-white text-[11px] font-bold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5 active:scale-95 transition">
-                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Catat Baru
-                        </button>
+                        
+                        <div class="flex items-center gap-2">
+                            <button id="btn-export-csv" onclick="exportCSV()" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 text-[10px] font-bold px-3 py-2 rounded-lg shadow-sm flex items-center gap-1.5 active:scale-95 transition border border-emerald-200 dark:border-emerald-800">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Unduh CSV
+                            </button>
+                            
+                            <button id="btn-add-kasus" onclick="toggleFormKasus()" class="hidden md:flex bg-slate-800 dark:bg-primary text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-sm items-center gap-1.5 active:scale-95 transition hover:bg-slate-900">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Catat Baru
+                            </button>
+                        </div>
                     </div>
 
                     <div id="form-kasus-container" class="hidden bg-white dark:bg-slate-800 rounded-[1.5rem] p-5 lg:p-6 border border-slate-100 dark:border-slate-700 shadow-card">
@@ -217,6 +225,10 @@
         </div>
     </main>
 
+    <button id="fab-add-kasus" onclick="toggleFormKasus()" class="md:hidden hidden fixed bottom-[5.5rem] right-5 z-40 bg-primary text-white w-14 h-14 rounded-full shadow-glow flex items-center justify-center hover:scale-105 active:scale-90 transition border border-white/20">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+    </button>
+
     <button onclick="openSettings()" class="md:hidden fixed bottom-6 right-5 z-40 bg-slate-800 dark:bg-slate-800 text-white w-14 h-14 rounded-[1.2rem] shadow-floating flex items-center justify-center hover:scale-105 active:scale-90 transition border border-white/10">
         <i data-lucide="settings-2" class="w-6 h-6"></i>
     </button>
@@ -269,13 +281,14 @@
         // ==========================================================
         const API_URL = "https://script.google.com/macros/s/AKfycby9u0653kO4Ya_q3ir4lSeab6G3XVMdkkNIQKj2-mQfP9s3ugr78GvwL2yzsuVcEOK8cg/exec"; 
         
-        // --- Inisialisasi Tema (Dark/Light Mode) ---
+        // --- Variabel Global untuk menyimpan data (Untuk Export CSV) ---
+        let globalKasusData = [];
+
+        // --- Inisialisasi Tema ---
         let isDarkMode = localStorage.getItem('sakti_theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches;
         
         window.addEventListener('DOMContentLoaded', () => {
             applyThemeUI();
-            
-            // Failsafe Loading
             setTimeout(() => {
                 document.getElementById('loader').classList.add('opacity-0', 'pointer-events-none');
                 document.getElementById('main-content').classList.remove('hidden');
@@ -302,7 +315,6 @@
             applyThemeUI();
         }
 
-        // --- Deteksi Perubahan File Foto ---
         document.getElementById('inputLampiran')?.addEventListener('change', function(e) {
             const fileName = e.target.files[0]?.name;
             document.getElementById('label-file').innerText = fileName ? fileName : "Ketuk untuk unggah foto...";
@@ -324,16 +336,21 @@
                 greetText.innerText = `Halo, ${user.nama.split(' ')[0]}`;
                 greetDesc.innerText = `${user.jabatan} | ${user.role}`;
                 
+                // Menyembunyikan tombol "Catat Baru" jika role adalah Kepala Sekolah
                 if(user.role === 'Kepala Sekolah') {
                     document.getElementById('btn-add-kasus').classList.add('hidden');
+                    document.getElementById('fab-add-kasus').classList.add('hidden');
                 } else {
                     document.getElementById('btn-add-kasus').classList.remove('hidden');
+                    // Hanya munculkan FAB jika di perangkat mobile (menggunakan class md:hidden sebagai default tailwind)
+                    document.getElementById('fab-add-kasus').classList.remove('hidden'); 
                 }
                 
                 fetchDataKasus(user);
             } else {
                 elLoggedOut.classList.remove('hidden');
                 elLoggedIn.classList.add('hidden');
+                document.getElementById('fab-add-kasus').classList.add('hidden');
                 greetText.innerText = "Buku Kasus";
                 greetDesc.innerText = "Sistem Pendataan Terpadu";
             }
@@ -371,7 +388,7 @@
             Swal.fire({ icon: 'success', title: 'Berhasil Keluar', showConfirmButton: false, timer: 1000 });
         }
 
-        // --- Logika Ambil & Tampilkan Data ---
+        // --- Logika Ambil Data ---
         async function fetchDataKasus(user) {
             document.getElementById('loading-data').classList.remove('hidden');
             document.getElementById('list-kasus').innerHTML = '';
@@ -383,6 +400,8 @@
                 document.getElementById('loading-data').classList.add('hidden');
                 
                 if (result.status === 'success') {
+                    // Simpan ke variabel global untuk Export CSV
+                    globalKasusData = result.data; 
                     renderDaftarKasus(result.data, user.role);
                 }
             } catch (err) {
@@ -408,7 +427,6 @@
                 let tglFormat = item.Tanggal ? new Date(item.Tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
                 let badgeColor = item.Status === 'Selesai' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200';
                 
-                // Cek jika ada link lampiran foto
                 let tombolLampiran = item.Lampiran && item.Lampiran.trim() !== '' ? 
                     `<a href="${item.Lampiran}" target="_blank" class="text-[9px] font-bold bg-primary/10 text-primary dark:bg-primary/20 hover:bg-primary hover:text-white transition px-2 py-1 rounded flex items-center gap-1 border border-primary/20"><i data-lucide="image" class="w-3 h-3"></i> Bukti</a>` : '';
 
@@ -437,13 +455,52 @@
             lucide.createIcons();
         }
 
+        // --- FITUR BARU: EXPORT DATA KE CSV ---
+        function exportCSV() {
+            if (globalKasusData.length === 0) {
+                Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data untuk diekspor.' });
+                return;
+            }
+
+            // Menentukan kolom yang akan di-export
+            const headers = ['Tanggal', 'Siswa', 'Kelas', 'Kategori', 'Uraian', 'Penanganan', 'Status', 'Nama_Guru', 'Lampiran'];
+            const csvRows = [];
+            
+            // Masukkan Header ke baris pertama
+            csvRows.push(headers.join(','));
+
+            // Looping isi data
+            globalKasusData.forEach(row => {
+                const values = headers.map(header => {
+                    let val = row[header] === undefined || row[header] === null ? '' : row[header].toString();
+                    val = val.replace(/"/g, '""'); // Mencegah error jika ada tanda kutip di dalam teks uraian
+                    return `"${val}"`; // Membungkus nilai dengan tanda kutip agar aman (koma di dalam kalimat tidak terputus)
+                });
+                csvRows.push(values.join(','));
+            });
+
+            // Menggabungkan semua baris menjadi satu teks dengan baris baru (\n)
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            
+            // Membuat link download sementara
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Rekap_Kasus_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         // --- Logika Input Data & Kompresi Foto ---
         function toggleFormKasus() {
             const form = document.getElementById('form-kasus-container');
             form.classList.toggle('hidden');
         }
 
-        // Fungsi Kompresi Foto dengan Canvas
         function compressImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -465,8 +522,6 @@
                         canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // Kualitas 60% agar ukuran file sangat kecil (100-200kb)
                         resolve(canvas.toDataURL('image/jpeg', 0.6)); 
                     };
                 };
@@ -481,7 +536,6 @@
             const user = JSON.parse(localStorage.getItem('sakti_user'));
             let fileBase64 = ''; let fileName = ''; let mimeType = '';
 
-            // Proses Foto jika ada
             const fileInput = document.getElementById('inputLampiran');
             if (fileInput.files.length > 0) {
                 btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Mengompresi Foto...'; lucide.createIcons();
