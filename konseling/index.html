@@ -129,22 +129,29 @@
                     <div class="flex items-center justify-between mt-2">
                         <div class="flex items-center gap-2">
                             <i data-lucide="list-collapse" class="w-5 h-5 text-primary"></i>
-                            <span class="text-xs font-extrabold text-slate-500 uppercase tracking-widest">Riwayat Kasus</span>
+                            <span class="text-[11px] md:text-xs font-extrabold text-slate-500 uppercase tracking-widest">Riwayat Kasus</span>
                         </div>
                         
-                        <div class="flex items-center gap-2">
-                            <button id="btn-export-csv" onclick="exportCSV()" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 text-[10px] font-bold px-3 py-2 rounded-lg shadow-sm flex items-center gap-1.5 active:scale-95 transition border border-emerald-200 dark:border-emerald-800">
-                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Unduh CSV
+                        <div class="flex items-center gap-1.5 md:gap-2">
+                            <button id="btn-export-csv" onclick="exportCSV()" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 text-[9px] md:text-[10px] font-bold px-2.5 md:px-3 py-2 rounded-lg shadow-sm flex items-center gap-1.5 active:scale-95 transition border border-emerald-200 dark:border-emerald-800">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> <span class="hidden md:inline">Unduh CSV</span><span class="md:hidden">CSV</span>
                             </button>
                             
-                            <button id="btn-add-kasus" onclick="toggleFormKasus()" class="hidden md:flex bg-slate-800 dark:bg-primary text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-sm items-center gap-1.5 active:scale-95 transition hover:bg-slate-900">
+                            <button id="btn-add-kasus" onclick="toggleFormKasus()" class="flex bg-slate-800 dark:bg-primary text-white text-[9px] md:text-[10px] font-bold px-2.5 md:px-3 py-2 rounded-lg shadow-sm items-center gap-1.5 active:scale-95 transition hover:bg-slate-900">
                                 <i data-lucide="plus" class="w-3.5 h-3.5"></i> Catat Baru
                             </button>
                         </div>
                     </div>
 
                     <div id="form-kasus-container" class="hidden bg-white dark:bg-slate-800 rounded-[1.5rem] p-5 lg:p-6 border border-slate-100 dark:border-slate-700 shadow-card">
-                        <h3 class="font-black text-lg mb-4 text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-700 pb-3">Formulir Catatan Baru</h3>
+                        
+                        <div class="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                            <h3 class="font-black text-lg text-slate-800 dark:text-white">Formulir Catatan Baru</h3>
+                            <button type="button" onclick="toggleFormKasus()" class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition bg-slate-50 dark:bg-slate-700 rounded-full p-1.5">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
                         <form id="formInputData" onsubmit="simpanKasus(event)" class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
@@ -225,10 +232,6 @@
         </div>
     </main>
 
-    <button id="fab-add-kasus" onclick="toggleFormKasus()" class="md:hidden hidden fixed bottom-[5.5rem] right-5 z-40 bg-primary text-white w-14 h-14 rounded-full shadow-glow flex items-center justify-center hover:scale-105 active:scale-90 transition border border-white/20">
-        <i data-lucide="plus" class="w-6 h-6"></i>
-    </button>
-
     <button onclick="openSettings()" class="md:hidden fixed bottom-6 right-5 z-40 bg-slate-800 dark:bg-slate-800 text-white w-14 h-14 rounded-[1.2rem] shadow-floating flex items-center justify-center hover:scale-105 active:scale-90 transition border border-white/10">
         <i data-lucide="settings-2" class="w-6 h-6"></i>
     </button>
@@ -281,10 +284,7 @@
         // ==========================================================
         const API_URL = "https://script.google.com/macros/s/AKfycby9u0653kO4Ya_q3ir4lSeab6G3XVMdkkNIQKj2-mQfP9s3ugr78GvwL2yzsuVcEOK8cg/exec"; 
         
-        // --- Variabel Global untuk menyimpan data (Untuk Export CSV) ---
         let globalKasusData = [];
-
-        // --- Inisialisasi Tema ---
         let isDarkMode = localStorage.getItem('sakti_theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches;
         
         window.addEventListener('DOMContentLoaded', () => {
@@ -321,7 +321,7 @@
             document.getElementById('label-file').classList.add('text-primary');
         });
 
-        // --- Logika Login & Sesi Auth ---
+        // --- Logika Login & Keamanan Teks Undefined ---
         function checkAuthState() {
             const userData = localStorage.getItem('sakti_user');
             const elLoggedOut = document.getElementById('state-logged-out');
@@ -333,24 +333,26 @@
                 const user = JSON.parse(userData);
                 elLoggedOut.classList.add('hidden');
                 elLoggedIn.classList.remove('hidden');
-                greetText.innerText = `Halo, ${user.nama.split(' ')[0]}`;
-                greetDesc.innerText = `${user.jabatan} | ${user.role}`;
+                
+                // Mencegah error "undefined" tercetak di layar
+                const safeNama = (user.nama && user.nama !== 'undefined') ? user.nama.split(' ')[0] : 'Guru';
+                const safeJabatan = (user.jabatan && user.jabatan !== 'undefined') ? user.jabatan : '-';
+                const safeRole = (user.role && user.role !== 'undefined') ? user.role : 'Guru';
+
+                greetText.innerText = `Halo, ${safeNama}`;
+                greetDesc.innerText = `${safeJabatan} | ${safeRole}`;
                 
                 // Menyembunyikan tombol "Catat Baru" jika role adalah Kepala Sekolah
-                if(user.role === 'Kepala Sekolah') {
+                if(safeRole === 'Kepala Sekolah') {
                     document.getElementById('btn-add-kasus').classList.add('hidden');
-                    document.getElementById('fab-add-kasus').classList.add('hidden');
                 } else {
                     document.getElementById('btn-add-kasus').classList.remove('hidden');
-                    // Hanya munculkan FAB jika di perangkat mobile (menggunakan class md:hidden sebagai default tailwind)
-                    document.getElementById('fab-add-kasus').classList.remove('hidden'); 
                 }
                 
                 fetchDataKasus(user);
             } else {
                 elLoggedOut.classList.remove('hidden');
                 elLoggedIn.classList.add('hidden');
-                document.getElementById('fab-add-kasus').classList.add('hidden');
                 greetText.innerText = "Buku Kasus";
                 greetDesc.innerText = "Sistem Pendataan Terpadu";
             }
@@ -400,7 +402,6 @@
                 document.getElementById('loading-data').classList.add('hidden');
                 
                 if (result.status === 'success') {
-                    // Simpan ke variabel global untuk Export CSV
                     globalKasusData = result.data; 
                     renderDaftarKasus(result.data, user.role);
                 }
@@ -455,35 +456,29 @@
             lucide.createIcons();
         }
 
-        // --- FITUR BARU: EXPORT DATA KE CSV ---
+        // --- Fitur Export Data ke CSV ---
         function exportCSV() {
             if (globalKasusData.length === 0) {
                 Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data untuk diekspor.' });
                 return;
             }
 
-            // Menentukan kolom yang akan di-export
             const headers = ['Tanggal', 'Siswa', 'Kelas', 'Kategori', 'Uraian', 'Penanganan', 'Status', 'Nama_Guru', 'Lampiran'];
             const csvRows = [];
-            
-            // Masukkan Header ke baris pertama
             csvRows.push(headers.join(','));
 
-            // Looping isi data
             globalKasusData.forEach(row => {
                 const values = headers.map(header => {
                     let val = row[header] === undefined || row[header] === null ? '' : row[header].toString();
-                    val = val.replace(/"/g, '""'); // Mencegah error jika ada tanda kutip di dalam teks uraian
-                    return `"${val}"`; // Membungkus nilai dengan tanda kutip agar aman (koma di dalam kalimat tidak terputus)
+                    val = val.replace(/"/g, '""'); 
+                    return `"${val}"`; 
                 });
                 csvRows.push(values.join(','));
             });
 
-            // Menggabungkan semua baris menjadi satu teks dengan baris baru (\n)
             const csvString = csvRows.join('\n');
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             
-            // Membuat link download sementara
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
@@ -592,12 +587,16 @@
             const userData = localStorage.getItem('sakti_user');
             if(userData) {
                 const u = JSON.parse(userData);
+                const safeNama = (u.nama && u.nama !== 'undefined') ? u.nama : 'Guru';
+                const safeJabatan = (u.jabatan && u.jabatan !== 'undefined') ? u.jabatan : '-';
+                const safeRole = (u.role && u.role !== 'undefined') ? u.role : 'Guru';
+
                 container.innerHTML = `
                     <div class="bg-gradient-to-br from-primary to-primaryDark rounded-[1rem] p-5 text-white shadow-soft mb-3 relative overflow-hidden">
                         <div class="absolute right-[-20px] top-[-20px] w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
                         <p class="text-[9px] uppercase font-bold text-white/80 mb-1">Status: Terverifikasi</p>
-                        <h3 class="font-black text-xl mb-0.5 line-clamp-1">${u.nama}</h3>
-                        <p class="text-xs font-medium">${u.jabatan} | ${u.role}</p>
+                        <h3 class="font-black text-xl mb-0.5 line-clamp-1">${safeNama}</h3>
+                        <p class="text-xs font-medium">${safeJabatan} | ${safeRole}</p>
                     </div>
                     <button onclick="logout()" class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-3.5 rounded-xl border border-red-100 dark:border-red-800/30 flex items-center justify-center gap-2 hover:bg-red-100 transition"><i data-lucide="log-out" class="w-4 h-4"></i> Keluar Akun</button>
                 `;
